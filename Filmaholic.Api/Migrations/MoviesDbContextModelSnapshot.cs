@@ -26,6 +26,10 @@ namespace Filmaholic.Api.Migrations
                     b.Property<DateTime>("AddedAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("AgeGroup")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Description")
                         .HasColumnType("TEXT");
 
@@ -46,7 +50,7 @@ namespace Filmaholic.Api.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Year")
+                    b.Property<int?>("Year")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");

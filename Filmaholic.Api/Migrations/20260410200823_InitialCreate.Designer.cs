@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Filmaholic.Api.Migrations
 {
     [DbContext(typeof(MoviesDbContext))]
-    [Migration("20260410023654_UpdateMovies")]
-    partial class UpdateMovies
+    [Migration("20260410200823_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -27,6 +27,10 @@ namespace Filmaholic.Api.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("AddedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("AgeGroup")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Description")
@@ -49,7 +53,7 @@ namespace Filmaholic.Api.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Year")
+                    b.Property<int?>("Year")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");

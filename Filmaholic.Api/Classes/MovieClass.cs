@@ -19,17 +19,22 @@ namespace Filmaholic.Api.Classes
                 Genre = newMovie.Genre,
                 Title = newMovie.Title,
                 Year = newMovie.Year,
+                AgeGroup = newMovie.AgeGroup,
                 Description = newMovie.Description,
                 UserName = newMovie.UserName
             };
             await _dbContext.Movies.AddAsync(createdMovie);
-            _dbContext.SaveChanges();
+           await _dbContext.SaveChangesAsync();
             return createdMovie;
         }
 
-        public Task<bool> DeleteMovie(Guid movieId)
+        public async Task<bool> DeleteMovie(Guid movieId)
         {
-            throw new NotImplementedException();
+            var movieToRemove = _dbContext.Movies.Where(movies => movies.Id == movieId ).FirstOrDefault();
+            if(movieToRemove == null){ return false; }
+            _dbContext.Movies.Remove(movieToRemove);
+            var changes = await _dbContext.SaveChangesAsync();
+            return changes > 0;
         }
 
         public async Task<IEnumerable<MovieModel>> GetAllMovies()
@@ -38,14 +43,23 @@ namespace Filmaholic.Api.Classes
             return movies;
         }
 
-        public Task<MovieModel?> GetMovieById(Guid movieId)
-        {
-            throw new NotImplementedException();
+        public async Task<MovieModel?> GetMovieById(Guid movieId)
+        {   
+            return await _dbContext.Movies.AsNoTracking().FirstOrDefaultAsync(movie => movie.Id == movieId);
         }
 
-        public Task<MovieModel?> UpdateMovie(Guid movieId, UpdateMovieDto movie)
+        public async Task<MovieModel?> UpdateMovie(Guid movieId, UpdateMovieDto movie)
         {
-            throw new NotImplementedException();
+            var movieToUpdate = await _dbContext.Movies.FindAsync(movieId );
+            if(movieToUpdate == null){return null;}
+            movieToUpdate.Title = movie.Title;
+            movieToUpdate.Genre = movie.Genre;
+            movieToUpdate.Description = movie.Description;
+            movieToUpdate.Year = movie.Year;
+            movieToUpdate.AgeGroup = movie.AgeGroup;
+            movieToUpdate.UpdatedAt = DateTime.Now;
+            await _dbContext.SaveChangesAsync();
+            return movieToUpdate;
         }
     }
 

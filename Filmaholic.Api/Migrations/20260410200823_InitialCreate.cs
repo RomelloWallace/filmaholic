@@ -15,16 +15,16 @@ namespace Filmaholic.Api.Migrations
                 name: "Movies",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     Title = table.Column<string>(type: "TEXT", nullable: false),
                     Genre = table.Column<string>(type: "TEXT", nullable: true),
-                    Year = table.Column<int>(type: "INTEGER", nullable: false),
+                    Year = table.Column<int>(type: "INTEGER", nullable: true),
                     Description = table.Column<string>(type: "TEXT", nullable: true),
                     AddedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     UserName = table.Column<string>(type: "TEXT", nullable: false),
-                    Image = table.Column<byte[]>(type: "BLOB", nullable: true)
+                    Image = table.Column<byte[]>(type: "BLOB", nullable: true),
+                    AgeGroup = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
