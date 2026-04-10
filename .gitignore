@@ -5,53 +5,30 @@ obj/
 # Visual Studio / VS Code
 .vs/
 .vscode/
-!.vscode/settings.json
-!.vscode/extensions.json
 
 # User-specific files
 *.user
 *.suo
-*.userosscache
-*.sln.docstates
 
 # Logs
 *.log
-*.tlog
-*.tmp
-*.temp
-*.pid
 
 # ASP.NET Core
 wwwroot/
 
 # .NET secrets
 secrets.json
-appsettings.Development.json
-appsettings.Local.json
-appsettings.*.local.json
 
-# SQLite database files
+# SQLite database files (optional)
 *.db
 *.db-shm
 *.db-wal
+
+# Rider / JetBrains
+.idea/
 
 # macOS
 .DS_Store
 
 # Windows
 Thumbs.db
-ehthumbs.db
-Desktop.ini
-
-# NuGet
-*.nupkg
-packages/
-
-# Publish output
-publish/
-out/
-
-# Backup files
-*.bak
-*.old
-*.orig
