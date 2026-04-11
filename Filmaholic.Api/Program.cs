@@ -9,14 +9,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Add EF Core + SQLite
 builder.Services.AddDbContext<MoviesDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("MoviesDb")));
 builder.Services.AddScoped<IMovie, MovieClass>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -24,6 +22,5 @@ if (app.Environment.IsDevelopment())
 
 }
 app.MapMovieEndpoints();
-//app.UseHttpsRedirection();
 
 app.Run();

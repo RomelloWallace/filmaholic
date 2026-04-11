@@ -1,14 +1,12 @@
-using Filmaholic.Api.Dtos;
-using Filmaholic.Api.Models;
+using Filmaholic.Api.Records;
 
-namespace Filmaholic.Api.Interfaces
+namespace Filmaholic.Api.Interfaces;
+
+public interface IMovie
 {
-    public interface IMovie
-    { 
-        Task<IEnumerable<MovieModel>> GetAllMovies();
-        Task<MovieModel?> GetMovieById(Guid movieId);
-        Task<MovieModel> AddMovie(CreateMovieDto movie);
-        Task<MovieModel?> UpdateMovie(Guid movieId, UpdateMovieDto movie);
-        Task<bool> DeleteMovie(Guid movieId);
-    }
+    Task<IEnumerable<GetMoviesRecord>> GetAllMovies();
+    Task<GetMovieRecord?> GetMovieById(Guid id);
+    Task<GetMovieRecord> AddMovie(CreateMovieRecord dto);
+    Task<GetMovieRecord?> UpdateMovie(Guid id, UpdateMovieRecord dto);
+    Task<bool> DeleteMovie(Guid id);
 }

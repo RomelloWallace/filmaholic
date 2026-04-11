@@ -1,4 +1,4 @@
-using Filmaholic.Api.Models;
+using Filmaholic.Api.DbModels;
 using Microsoft.EntityFrameworkCore;
 
 namespace Filmaholic.Api.Data;

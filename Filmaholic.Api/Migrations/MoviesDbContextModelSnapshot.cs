@@ -17,7 +17,7 @@ namespace Filmaholic.Api.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.5");
 
-            modelBuilder.Entity("Filmaholic.Api.Models.MovieModel", b =>
+            modelBuilder.Entity("Filmaholic.Api.DbModels.MovieModel", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -34,6 +34,7 @@ namespace Filmaholic.Api.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Genre")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<byte[]>("Image")

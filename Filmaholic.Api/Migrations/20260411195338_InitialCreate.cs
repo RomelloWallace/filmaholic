@@ -17,14 +17,14 @@ namespace Filmaholic.Api.Migrations
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     Title = table.Column<string>(type: "TEXT", nullable: false),
-                    Genre = table.Column<string>(type: "TEXT", nullable: true),
+                    Genre = table.Column<string>(type: "TEXT", nullable: false),
+                    AgeGroup = table.Column<string>(type: "TEXT", nullable: false),
+                    UserName = table.Column<string>(type: "TEXT", nullable: false),
                     Year = table.Column<int>(type: "INTEGER", nullable: true),
                     Description = table.Column<string>(type: "TEXT", nullable: true),
-                    AddedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UserName = table.Column<string>(type: "TEXT", nullable: false),
                     Image = table.Column<byte[]>(type: "BLOB", nullable: true),
-                    AgeGroup = table.Column<string>(type: "TEXT", nullable: false)
+                    AddedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
