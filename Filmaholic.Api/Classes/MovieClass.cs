@@ -2,7 +2,7 @@ using Filmaholic.Api.Interfaces;
 using Filmaholic.Api.DbModels;
 using Filmaholic.Api.Data;
 using Microsoft.EntityFrameworkCore;
-using Filmaholic.Api.Records;
+using Filmaholic.Shared.Records;
 
 namespace Filmaholic.Api.Classes
 {

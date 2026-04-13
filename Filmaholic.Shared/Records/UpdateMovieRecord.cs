@@ -1,4 +1,4 @@
-namespace Filmaholic.Api.Records;
+namespace Filmaholic.Shared.Records;
 
 public record UpdateMovieRecord(
     string? Title,

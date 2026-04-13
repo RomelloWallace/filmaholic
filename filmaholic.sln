@@ -4,6 +4,8 @@ VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Filmaholic.Api", "Filmaholic.Api\Filmaholic.Api.csproj", "{B5F0C14B-D13C-34E2-ECB3-B7887E903C42}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Filmaholic.App", "Filmaholic.App\Filmaholic.App.csproj", "{EE10A78E-17AF-A6B4-594B-BA74648CA182}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -14,6 +16,10 @@ Global
 		{B5F0C14B-D13C-34E2-ECB3-B7887E903C42}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B5F0C14B-D13C-34E2-ECB3-B7887E903C42}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B5F0C14B-D13C-34E2-ECB3-B7887E903C42}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EE10A78E-17AF-A6B4-594B-BA74648CA182}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE10A78E-17AF-A6B4-594B-BA74648CA182}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE10A78E-17AF-A6B4-594B-BA74648CA182}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE10A78E-17AF-A6B4-594B-BA74648CA182}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

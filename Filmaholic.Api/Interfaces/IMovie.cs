@@ -1,4 +1,4 @@
-using Filmaholic.Api.Records;
+using Filmaholic.Shared.Records;
 
 namespace Filmaholic.Api.Interfaces;
 
