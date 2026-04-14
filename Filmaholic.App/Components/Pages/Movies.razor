@@ -1,5 +1,6 @@
 ﻿@page "/"
 @page "/movies"
+@inject NavigationManager Nav
 @using Filmaholic.Shared.Dtos
 @using Filmaholic.App.Services;
 
@@ -17,9 +18,12 @@ else if (movies.Count == 0)
 }
 else
 {
-    foreach (var movie in movies)
+    @foreach (var movie in movies)
     {
-        <p>@movie.Title (@movie.Year)</p>
+        <a href="/movie/@movie.Id">
+            @movie.Title (@movie.Year)
+        </a>
+        <br />
     }
 }
 
