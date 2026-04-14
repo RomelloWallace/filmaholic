@@ -1,4 +1,4 @@
-using Filmaholic.Api.Records;
+using Filmaholic.Shared.Records;
 using Filmaholic.Api.Interfaces;
 using Filmaholic.Api.Forms;
 using Microsoft.AspNetCore.Mvc;
