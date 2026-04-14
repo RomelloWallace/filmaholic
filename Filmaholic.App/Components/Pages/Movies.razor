@@ -1,4 +1,5 @@
 ﻿@page "/"
+@page "/movies"
 @using Filmaholic.Shared.Dtos
 @using Filmaholic.App.Services;
 
@@ -9,6 +10,10 @@
 @if (movies == null)
 {
     <p>Loading...</p>
+}
+else if (movies.Count == 0)
+{
+    <p>No movies found.</p>
 }
 else
 {

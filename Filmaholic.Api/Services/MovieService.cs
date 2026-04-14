@@ -10,34 +10,36 @@ namespace Filmaholic.Api.Classes
     {
         private readonly MoviesDbContext _dbContext;
 
-         private static GetMovieDto MapSingleMovieToRecord(MovieEntity movie)
+        private static GetMovieDto MapSingleMovieToRecord(MovieEntity movie)
         {
-            return new GetMovieDto(
-                movie.Id,
-                movie.Title,
-                movie.Genre ,
-                movie.Year,
-                movie.Description,
-                movie.AgeGroup,
-                movie.UserName,
-                movie.AddedAt,
-                movie.UpdatedAt,
-                movie.Image
-            );
+            return new GetMovieDto
+            {
+                Id = movie.Id,
+                Title = movie.Title,
+                Genre = movie.Genre,
+                Year = movie.Year,
+                Description = movie.Description,
+                AgeGroup = movie.AgeGroup,
+                UserName = movie.UserName,
+                AddedAt = movie.AddedAt,
+                UpdatedAt = movie.UpdatedAt,
+                Image = movie.Image
+            };
         }
         private static GetMoviesDto MapManyMoviesToRecord(MovieEntity movie)
         {
-            return new GetMoviesDto(
-                movie.Id,
-                movie.Title,
-                movie.Genre ,
-                movie.Year,
-                movie.Description,
-                movie.AgeGroup,
-                movie.UserName,
-                movie.AddedAt,
-                movie.UpdatedAt
-            );
+            return new GetMoviesDto
+            {
+                Id = movie.Id,
+                Title = movie.Title,
+                Genre = movie.Genre,
+                Year = movie.Year,
+                Description = movie.Description,
+                AgeGroup = movie.AgeGroup,
+                UserName = movie.UserName,
+                AddedAt = movie.AddedAt,
+                UpdatedAt = movie.UpdatedAt
+            };
         }
 
         public MovieService(MoviesDbContext dbContext)
@@ -70,9 +72,20 @@ namespace Filmaholic.Api.Classes
 
         public async Task<IEnumerable<GetMoviesDto>> GetAllMovies()
         {  
-            IEnumerable<MovieEntity> movies = await _dbContext.Movies.AsNoTracking().ToListAsync();
-            var MovieDtos = movies.Select(movie => MapManyMoviesToRecord(movie)).ToList();
-            return MovieDtos;
+            var movies = await _dbContext.Movies.AsNoTracking().Select(
+                movie => new GetMoviesDto{
+                    Id = movie.Id,
+                    Title = movie.Title,
+                    Genre = movie.Genre,
+                    Year = movie.Year,
+                    Description = movie.Description,
+                    AgeGroup = movie.AgeGroup,
+                    UserName = movie.UserName,
+                    AddedAt = movie.AddedAt,
+                    UpdatedAt = movie.UpdatedAt
+                })
+                .ToListAsync();
+            return movies;
         }
 
         public async Task<GetMovieDto?> GetMovieById(Guid movieId)

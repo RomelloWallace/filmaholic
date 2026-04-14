@@ -1,0 +1,39 @@
+﻿@page "/movie/{Id:guid}"
+@inject MovieService MovieService
+@inject NavigationManager Nav
+
+@using Filmaholic.Shared.Dtos
+
+<h3>Movie Details</h3>
+
+@if (movie == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <h2>@movie.Title</h2>
+    <p><b>Genre:</b> @movie.Genre</p>
+    <p><b>Year:</b> @movie.Year</p>
+    <p>@movie.Description</p>
+
+    <button @onclick="DeleteMovie">Delete</button>
+}
+
+@code {
+    [Parameter]
+    public Guid Id { get; set; }
+
+    private GetMovieDto? movie = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        movie = await MovieService.GetMovieAsync(Id);
+    }
+
+    async Task DeleteMovie()
+    {
+        await MovieService.DeleteMovieAsync(Id);
+        Nav.NavigateTo("/movies");
+    }
+}

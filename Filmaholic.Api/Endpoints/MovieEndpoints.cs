@@ -45,15 +45,16 @@ public static class MovieEndpoints
                 imageBytes = ms.ToArray();
             }
 
-            var dto = new CreateMovieDto(
-                form.Title,
-                form.Genre,
-                form.AgeGroup,
-                form.UserName,
-                form.Year,
-                form.Description,
-                imageBytes
-            );
+            var dto = new CreateMovieDto
+            {
+                Title = form.Title,
+                Genre = form.Genre,
+                AgeGroup = form.AgeGroup,
+                UserName = form.UserName,
+                Year = form.Year,
+                Description = form.Description,
+                Image = imageBytes
+            };
 
             var movie = await service.AddMovie(dto);
 
@@ -80,16 +81,16 @@ public static class MovieEndpoints
                 imageBytes = ms.ToArray();
             }
 
-            var dto = new UpdateMovieDto(
-                form.Title,
-                form.Genre,
-                form.AgeGroup,
-                form.Year,
-                form.Description,
-                form.UserName,
-                imageBytes
-            );
-
+            var dto = new UpdateMovieDto
+            {
+                Title = form.Title,
+                Genre = form.Genre,
+                AgeGroup = form.AgeGroup,
+                Year = form.Year,
+                Description = form.Description,
+                UserName = form.UserName,
+                Image = imageBytes
+            };
             var updated = await service.UpdateMovie(movieId, dto);
 
             return updated is null
