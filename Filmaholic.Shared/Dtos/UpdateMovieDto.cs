@@ -1,6 +1,6 @@
-namespace Filmaholic.Shared.Records;
+namespace Filmaholic.Shared.Dtos;
 
-public record UpdateMovieRecord(
+public record UpdateMovieDto(
     string? Title,
     string? Genre,
     string? AgeGroup,

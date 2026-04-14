@@ -1,5 +1,5 @@
-namespace Filmaholic.Api.Forms;
-public class CreateMovieForm
+namespace Filmaholic.Api.Requests;
+public class CreateMovieRequest
 {
     public string Title { get; set; } = default!;
     public string Genre { get; set; } = default!;

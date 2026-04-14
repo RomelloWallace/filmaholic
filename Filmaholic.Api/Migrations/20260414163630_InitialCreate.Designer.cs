@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Filmaholic.Api.Migrations
 {
     [DbContext(typeof(MoviesDbContext))]
-    [Migration("20260411195338_InitialCreate")]
+    [Migration("20260414163630_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -20,7 +20,7 @@ namespace Filmaholic.Api.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.5");
 
-            modelBuilder.Entity("Filmaholic.Api.DbModels.MovieModel", b =>
+            modelBuilder.Entity("Filmaholic.Api.Entities.MovieEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()

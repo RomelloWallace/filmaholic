@@ -1,6 +1,6 @@
-namespace Filmaholic.Api.DbModels
+namespace Filmaholic.Api.Entities
 {
-public class MovieModel
+public class MovieEntity
 {
     public Guid Id { get; set; }
 

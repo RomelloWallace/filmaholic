@@ -1,6 +1,6 @@
-namespace Filmaholic.Api.Forms;
+namespace Filmaholic.Api.Requests;
 
-public class UpdateMovieForm
+public class UpdateMovieRequest
 {
     public string? Title { get; set; }
     public string? Genre { get; set; }

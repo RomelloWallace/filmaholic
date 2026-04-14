@@ -1,4 +1,4 @@
-using Filmaholic.Api.DbModels;
+using Filmaholic.Api.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Filmaholic.Api.Data;
@@ -8,5 +8,5 @@ public class MoviesDbContext : DbContext
     {
     }
 
-    public DbSet<MovieModel> Movies => Set<MovieModel>();
+    public DbSet<MovieEntity> Movies => Set<MovieEntity>();
 }

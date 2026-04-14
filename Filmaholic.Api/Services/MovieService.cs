@@ -1,116 +1,117 @@
-using Filmaholic.Shared.Records;
 using Filmaholic.Api.Interfaces;
-using Filmaholic.Api.Forms;
-using Microsoft.AspNetCore.Mvc;
+using Filmaholic.Api.Entities;
+using Filmaholic.Api.Data;
+using Microsoft.EntityFrameworkCore;
+using Filmaholic.Shared.Dtos;
 
-namespace Filmaholic.Api.Services;
-
-public static class MovieEndpoints
+namespace Filmaholic.Api.Classes
 {
-    public static void MapMovieEndpoints(this WebApplication app)
+    public class MovieService : IMovieService
     {
-        var group = app.MapGroup("filmaholic/v1/movies");
+        private readonly MoviesDbContext _dbContext;
 
-        // GET ALL
-        group.MapGet("/", async (IMovie service) =>
+         private static GetMovieDto MapSingleMovieToRecord(MovieEntity movie)
         {
-            var movies = await service.GetAllMovies();
-            return Results.Ok(movies);
-        })
-        .Produces<IEnumerable<GetMoviesRecord>>(StatusCodes.Status200OK);
-
-        // GET BY ID
-        group.MapGet("/{movieId:guid}", async (Guid movieId, IMovie service) =>
-        {
-            var movie = await service.GetMovieById(movieId);
-
-            return movie is null
-                ? Results.NotFound()
-                : Results.Ok(movie);
-        })
-        .Produces<GetMovieRecord>(StatusCodes.Status200OK)
-        .Produces(StatusCodes.Status404NotFound);
-
-        // CREATE
-        group.MapPost("/", async (
-            [FromForm] CreateMovieForm form,
-            IMovie service) =>
-        {
-            byte[]? imageBytes = null;
-
-            if (form.Image is not null)
-            {
-                using var ms = new MemoryStream();
-                await form.Image.CopyToAsync(ms);
-                imageBytes = ms.ToArray();
-            }
-
-            var dto = new CreateMovieRecord(
-                form.Title,
-                form.Genre,
-                form.AgeGroup,
-                form.UserName,
-                form.Year,
-                form.Description,
-                imageBytes
+            return new GetMovieDto(
+                movie.Id,
+                movie.Title,
+                movie.Genre ,
+                movie.Year,
+                movie.Description,
+                movie.AgeGroup,
+                movie.UserName,
+                movie.AddedAt,
+                movie.UpdatedAt,
+                movie.Image
             );
-
-            var movie = await service.AddMovie(dto);
-
-            return Results.Created(
-                $"filmaholic/v1/movies/{movie.Id}",
-                movie);
-        })
-        .Accepts<CreateMovieForm>("multipart/form-data")
-        .Produces<GetMovieRecord>(StatusCodes.Status201Created)
-        .DisableAntiforgery();
-
-        // UPDATE (PATCH)
-        group.MapPatch("/{movieId:guid}", async (
-            Guid movieId,
-            [FromForm] UpdateMovieForm form,
-            IMovie service) =>
+        }
+        private static GetMoviesDto MapManyMoviesToRecord(MovieEntity movie)
         {
-            byte[]? imageBytes = null;
-
-            if (form.Image is not null)
-            {
-                using var ms = new MemoryStream();
-                await form.Image.CopyToAsync(ms);
-                imageBytes = ms.ToArray();
-            }
-
-            var dto = new UpdateMovieRecord(
-                form.Title,
-                form.Genre,
-                form.AgeGroup,
-                form.Year,
-                form.Description,
-                form.UserName,
-                imageBytes
+            return new GetMoviesDto(
+                movie.Id,
+                movie.Title,
+                movie.Genre ,
+                movie.Year,
+                movie.Description,
+                movie.AgeGroup,
+                movie.UserName,
+                movie.AddedAt,
+                movie.UpdatedAt
             );
+        }
 
-            var updated = await service.UpdateMovie(movieId, dto);
-
-            return updated is null
-                ? Results.NotFound()
-                : Results.Ok(updated);
-        })
-        .Accepts<UpdateMovieForm>("multipart/form-data")
-        .Produces<GetMovieRecord>(StatusCodes.Status200OK)
-        .Produces(StatusCodes.Status404NotFound)
-        .DisableAntiforgery();
-
-        // DELETE
-        group.MapDelete("/{movieId:guid}", async (Guid movieId, IMovie service) =>
+        public MovieService(MoviesDbContext dbContext)
         {
-            var deleted = await service.DeleteMovie(movieId);
+            _dbContext = dbContext;
+        }
+        public async Task<GetMovieDto> AddMovie(CreateMovieDto newMovie)
+        {
+            var createdMovie = new MovieEntity{
+                Genre = newMovie.Genre,
+                Title = newMovie.Title,
+                Year = newMovie.Year,
+                AgeGroup = newMovie.AgeGroup,
+                Description = newMovie.Description,
+                UserName = newMovie.UserName
+            };
+            await _dbContext.Movies.AddAsync(createdMovie);
+            await _dbContext.SaveChangesAsync();
+            return MapSingleMovieToRecord(createdMovie);
+        }
 
-            return deleted
-                ? Results.NoContent()
-                : Results.NotFound();
-        })
-        .Produces(StatusCodes.Status204NoContent)
-        .Produces(StatusCodes.Status404NotFound);
+        public async Task<bool> DeleteMovie(Guid movieId)
+        {
+            var movieToRemove = _dbContext.Movies.Where(movies => movies.Id == movieId ).FirstOrDefault();
+            if(movieToRemove == null){ return false; }
+            _dbContext.Movies.Remove(movieToRemove);
+            var changes = await _dbContext.SaveChangesAsync();
+            return changes > 0;
+        }
+
+        public async Task<IEnumerable<GetMoviesDto>> GetAllMovies()
+        {  
+            IEnumerable<MovieEntity> movies = await _dbContext.Movies.AsNoTracking().ToListAsync();
+            var MovieDtos = movies.Select(movie => MapManyMoviesToRecord(movie)).ToList();
+            return MovieDtos;
+        }
+
+        public async Task<GetMovieDto?> GetMovieById(Guid movieId)
+        {   var movie = await _dbContext.Movies.AsNoTracking().FirstOrDefaultAsync(movie => movie.Id == movieId);
+            if (movie == null) return null;
+            return MapSingleMovieToRecord(movie);
+        }
+
+        public async Task<GetMovieDto?> UpdateMovie(Guid movieId, UpdateMovieDto update)
+        {
+            var movie = await _dbContext.Movies.FindAsync(movieId);
+
+            if (movie is null)
+                return null;
+
+            if (update.Title is not null)
+                movie.Title = update.Title;
+
+            if (update.Genre is not null)
+                movie.Genre = update.Genre;
+
+            if (update.Description is not null)
+                movie.Description = update.Description;
+
+            if (update.Year is not null)
+                movie.Year = update.Year;
+
+            if (update.AgeGroup is not null)
+                movie.AgeGroup = update.AgeGroup;
+
+            if (update.UserName is not null)
+                movie.UserName = update.UserName;
+
+            movie.UpdatedAt = DateTime.UtcNow;
+
+            await _dbContext.SaveChangesAsync();
+
+            return MapSingleMovieToRecord(movie);
+        }
     }
+
 }

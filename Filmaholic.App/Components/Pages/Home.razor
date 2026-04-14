@@ -1,5 +1,5 @@
 ﻿@page "/"
-@using Filmaholic.Shared.Records
+@using Filmaholic.Shared.Dtos
 @using Filmaholic.App.Services;
 
 @inject MovieService MovieService
@@ -19,7 +19,7 @@ else
 }
 
 @code {
-    private List<GetMovieRecord>? movies;
+    private List<GetMovieDto>? movies;
 
     protected override async Task OnInitializedAsync()
     {

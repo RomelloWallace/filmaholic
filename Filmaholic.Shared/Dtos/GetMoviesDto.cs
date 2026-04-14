@@ -1,6 +1,6 @@
-namespace Filmaholic.Shared.Records;
+namespace Filmaholic.Shared.Dtos;
 
-public record GetMovieRecord(
+public record GetMoviesDto(
     Guid Id,
     string Title,
     string Genre,
@@ -9,5 +9,4 @@ public record GetMovieRecord(
     string AgeGroup,
     string UserName,
     DateTime AddedAt,
-    DateTime UpdatedAt,
-    byte[]? Image);
+    DateTime UpdatedAt);
