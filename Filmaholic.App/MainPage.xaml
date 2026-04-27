@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:Filmaholic.App"
              xmlns:components="clr-namespace:Filmaholic.App.Components"
-             x:Class="Filmaholic.App.MainPage">
+             x:Class="Filmaholic.App.MainPage"
+             Padding="{OnPlatform iOS='0,55,0,0', Android='0,35,0,0'}">
 
     <BlazorWebView x:Name="blazorWebView" HostPage="wwwroot/index.html">
         <BlazorWebView.RootComponents>

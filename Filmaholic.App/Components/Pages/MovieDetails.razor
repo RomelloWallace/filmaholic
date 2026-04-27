@@ -18,6 +18,7 @@ else
     <p>@movie.Description</p>
 
     <button @onclick="DeleteMovie">Delete</button>
+    <button @onclick="EditMovie">Edit</button>
 }
 
 @code {
@@ -35,5 +36,9 @@ else
     {
         await MovieService.DeleteMovieAsync(Id);
         Nav.NavigateTo("/movies");
+    }
+    async Task EditMovie()
+    {
+        Nav.NavigateTo($"/movie/{Id}/edit");
     }
 }

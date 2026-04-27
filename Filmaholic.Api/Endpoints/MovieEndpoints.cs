@@ -67,7 +67,7 @@ public static class MovieEndpoints
         .DisableAntiforgery();
 
         // UPDATE (PATCH)
-        group.MapPatch("/{movieId:guid}", async (
+        group.MapPatch("/{movieId:guid}/edit", async (
             Guid movieId,
             [FromForm] UpdateMovieRequest form,
             IMovieService service) =>

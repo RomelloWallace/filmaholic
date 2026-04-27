@@ -1,6 +1,7 @@
 ﻿using Filmaholic.App.Components;
 using Filmaholic.App.Services;
 using Microsoft.Extensions.Logging;
+using Microsoft.Maui.Handlers;
 
 namespace Filmaholic.App;
 
@@ -23,10 +24,37 @@ public static class MauiProgram
 #endif
 
         // Register HttpClient with base API address
+        var baseAddress = OperatingSystem.IsAndroid()
+            ? "http://10.0.2.2:5220/"
+            : "http://localhost:5220/";
+
+        // builder.ConfigureMauiHandlers(handlers =>
+        // {
+        // #if ANDROID
+        //     Microsoft.Maui.Handlers.PageHandler.Mapper.AppendToMapping("SafeArea", (handler, view) =>
+        //     {
+        //         handler.PlatformView.SetFitsSystemWindows(true);
+        //     });
+        // #endif
+        // });
+
+
+        builder.ConfigureMauiHandlers(handlers =>
+        {
+            handlers.AddHandler<Microsoft.Maui.Controls.Page, PageHandler>();
+
+#if ANDROID
+            PageHandler.Mapper.AppendToMapping("SafeAreaFix", (handler, view) =>
+            {
+                handler.PlatformView.SetFitsSystemWindows(true);
+            });
+#endif
+        });
+
         builder.Services.AddScoped(sp =>
             new HttpClient
             {
-                BaseAddress = new Uri("http://127.0.0.1:5220/")
+                BaseAddress = new Uri(baseAddress)
             });
 
         // Register MovieService

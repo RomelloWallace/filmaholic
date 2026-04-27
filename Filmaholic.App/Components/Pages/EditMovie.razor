@@ -1,0 +1,101 @@
+@page "/movie/{Id:guid}/edit"
+@inject MovieService MovieService
+@inject NavigationManager Nav
+
+@using Filmaholic.Shared.Dtos
+
+
+<h3>Edit Movie</h3>
+
+<EditForm Model="@movie" OnSubmit="SaveMovie">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label>Title:</label>
+        <InputText @bind-Value="movie.Title" class="form-control" />
+    </div>
+
+        <div class="form-group">
+        <label>AgeGroup:</label>
+        <InputText @bind-Value="movie.AgeGroup" class="form-control" />
+    </div>
+
+        <div class="form-group">
+        <label>Genre:</label>
+        <InputText @bind-Value="movie.Genre" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Year:</label>
+        <InputNumber @bind-Value="movie.Year" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Description:</label>
+        <InputTextArea @bind-Value="movie.Description"
+                       class="form-control"
+                       rows="4" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        Save
+    </button>
+
+    <button type="button"
+            class="btn btn-secondary"
+            @onclick="Cancel">
+        Cancel
+    </button>
+
+</EditForm>
+
+@if (submitted)
+{
+    <div class="alert alert-success mt-3">
+        Movie updated!
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Guid Id { get; set; }
+    
+    private bool submitted;
+
+
+    private GetMovieDto movie = new GetMovieDto();
+    
+    private UpdateMovieDto updateMovie = new UpdateMovieDto();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await MovieService.GetMovieAsync(Id);
+        if (result == null)
+        {
+            Nav.NavigateTo("/movies");
+            return;
+        }
+
+        movie = result;
+    }
+
+    private async Task SaveMovie()
+    {
+        updateMovie.Id = Id.ToString();
+        updateMovie.Title = movie.Title;
+        updateMovie.Genre = movie.Genre;
+        updateMovie.AgeGroup = movie.AgeGroup;
+        updateMovie.Year = movie.Year;
+        updateMovie.Description = movie.Description;
+        Console.WriteLine($"Updating movie:{updateMovie.Id} {updateMovie.Title}, {updateMovie.Genre}, {updateMovie.AgeGroup}, {updateMovie.Year}, {updateMovie.Description}");
+        await MovieService.UpdateMovieAsync(updateMovie);
+        submitted = true;
+        Nav.NavigateTo("/movies");
+    }
+
+    private void Cancel()
+    {
+        Nav.NavigateTo("/movies");
+    }
+}

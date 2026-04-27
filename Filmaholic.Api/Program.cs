@@ -12,6 +12,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<MoviesDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("MoviesDb")));
 builder.Services.AddScoped<IMovieService, MovieService>();
+builder.WebHost.UseUrls("http://0.0.0.0:5220");
 
 var app = builder.Build();
 

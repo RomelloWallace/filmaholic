@@ -31,7 +31,36 @@ public class MovieService
         await _http.DeleteAsync($"filmaholic/v1/movies/{id}");
     }
 
-    public async Task AddMovieAsync(CreateMovieDto movie)
+    public async Task UpdateMovieAsync(UpdateMovieDto movie)
+    {
+        using var content = new MultipartFormDataContent();
+
+        content.Add(new StringContent(movie.Id ?? ""), "Id");
+        content.Add(new StringContent(movie.Title ?? ""), "Title");
+        content.Add(new StringContent(movie.Genre ?? ""), "Genre");
+        content.Add(new StringContent(movie.AgeGroup ?? ""), "AgeGroup");
+        content.Add(new StringContent(movie.UserName ?? ""), "UserName");
+        content.Add(new StringContent(movie.Description ?? ""), "Description");
+        if (movie.Year.HasValue)
+        {
+            content.Add(new StringContent(movie.Year.Value.ToString()), "Year");
+        }
+        if (movie.Image != null)
+        {
+            var imageContent = new ByteArrayContent(movie.Image);
+            imageContent.Headers.ContentType =
+                new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+
+            content.Add(imageContent, "Image", "image.jpg");
+        }
+        
+
+        var response = await _http.PatchAsync($"filmaholic/v1/movies/{movie.Id}/edit", content);
+
+        response.EnsureSuccessStatusCode();
+    }
+
+        public async Task AddMovieAsync(CreateMovieDto movie)
     {
         using var content = new MultipartFormDataContent();
 

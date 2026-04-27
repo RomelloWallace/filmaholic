@@ -2,6 +2,7 @@ namespace Filmaholic.Shared.Dtos;
 
 public class UpdateMovieDto
 {
+    public string? Id { get; set; }
     public string? Title { get; set; }
 
     public string? Genre { get; set; }
