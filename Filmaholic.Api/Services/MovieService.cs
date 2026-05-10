@@ -1,8 +1,9 @@
-using Filmaholic.Api.Interfaces;
 using Filmaholic.Api.Entities;
 using Filmaholic.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Filmaholic.Shared.Dtos;
+using Filmaholic.Api.Endpoints;
+using Filmaholic.Api.Interfaces;
 
 namespace Filmaholic.Api.Classes
 {
@@ -46,34 +47,53 @@ namespace Filmaholic.Api.Classes
         {
             _dbContext = dbContext;
         }
-        public async Task<GetMovieDto> AddMovie(CreateMovieDto newMovie)
+        public async Task<GetMovieDto> AddMovie(CreateMovieDto newMovie, CancellationToken ct = default)
         {
-            var createdMovie = new MovieEntity{
+            var exists = await _dbContext.Movies
+                .AnyAsync(m =>
+                    m.Title == newMovie.Title &&
+                    m.Year == newMovie.Year,
+                    ct);
+
+            if (exists)
+                throw new ConflictException("A movie with the same title and year already exists.");
+
+            var createdMovie = new MovieEntity
+            {
+                Id = Guid.NewGuid(),
+                Title = newMovie.Title.Trim(),
                 Genre = newMovie.Genre,
-                Title = newMovie.Title,
                 Year = newMovie.Year,
                 AgeGroup = newMovie.AgeGroup,
                 Description = newMovie.Description,
-                UserName = newMovie.UserName
+                UserName = newMovie.UserName,
+                Image = newMovie.Image
             };
-            await _dbContext.Movies.AddAsync(createdMovie);
-            await _dbContext.SaveChangesAsync();
+
+            await _dbContext.Movies.AddAsync(createdMovie, ct);
+            await _dbContext.SaveChangesAsync(ct);
+
             return MapSingleMovieToRecord(createdMovie);
         }
 
-        public async Task<bool> DeleteMovie(Guid movieId)
+        public async Task DeleteMovie(Guid movieId, CancellationToken ct = default)
         {
-            var movieToRemove = _dbContext.Movies.Where(movies => movies.Id == movieId ).FirstOrDefault();
-            if(movieToRemove == null){ return false; }
-            _dbContext.Movies.Remove(movieToRemove);
-            var changes = await _dbContext.SaveChangesAsync();
-            return changes > 0;
+            var movie = await _dbContext.Movies
+                .FirstOrDefaultAsync(m => m.Id == movieId, ct);
+
+            if (movie is null)
+                throw new NotFoundException($"Movie with id '{movieId}' was not found.");
+
+            _dbContext.Movies.Remove(movie);
+            await _dbContext.SaveChangesAsync(ct);
         }
 
-        public async Task<IEnumerable<GetMoviesDto>> GetAllMovies()
-        {  
-            var movies = await _dbContext.Movies.AsNoTracking().Select(
-                movie => new GetMoviesDto{
+        public async Task<IEnumerable<GetMoviesDto>> GetAllMovies(CancellationToken ct = default)
+        {
+            var movies = await _dbContext.Movies
+                .AsNoTracking()
+                .Select(movie => new GetMoviesDto
+                {
                     Id = movie.Id,
                     Title = movie.Title,
                     Genre = movie.Genre,
@@ -84,25 +104,32 @@ namespace Filmaholic.Api.Classes
                     AddedAt = movie.AddedAt,
                     UpdatedAt = movie.UpdatedAt
                 })
-                .ToListAsync();
+                .ToListAsync(ct);
+
             return movies;
         }
 
-        public async Task<GetMovieDto?> GetMovieById(Guid movieId)
-        {   var movie = await _dbContext.Movies.AsNoTracking().FirstOrDefaultAsync(movie => movie.Id == movieId);
-            if (movie == null) return null;
+        public async Task<GetMovieDto> GetMovieById(Guid movieId, CancellationToken ct = default)
+        {
+            var movie = await _dbContext.Movies
+                .AsNoTracking()
+                .FirstOrDefaultAsync(m => m.Id == movieId, ct);
+
+            if (movie is null)
+                throw new NotFoundException($"Movie {movieId} not found");
+
             return MapSingleMovieToRecord(movie);
         }
 
-        public async Task<GetMovieDto?> UpdateMovie(Guid movieId, UpdateMovieDto update)
+        public async Task<GetMovieDto> UpdateMovie(Guid movieId, UpdateMovieDto update, CancellationToken ct = default)
         {
-            var movie = await _dbContext.Movies.FindAsync(movieId);
+            var movie = await _dbContext.Movies.FindAsync([movieId], ct);
 
             if (movie is null)
-                return null;
+                throw new NotFoundException($"Movie with id '{movieId}' was not found.");
 
             if (update.Title is not null)
-                movie.Title = update.Title;
+                movie.Title = update.Title.Trim();
 
             if (update.Genre is not null)
                 movie.Genre = update.Genre;
@@ -121,10 +148,9 @@ namespace Filmaholic.Api.Classes
 
             movie.UpdatedAt = DateTime.UtcNow;
 
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync(ct);
 
             return MapSingleMovieToRecord(movie);
         }
     }
-
 }

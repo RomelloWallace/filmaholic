@@ -12,29 +12,24 @@ public static class MovieEndpoints
         var group = app.MapGroup("filmaholic/v1/movies");
 
         // GET ALL
-        group.MapGet("/", async (IMovieService service) =>
+        group.MapGet("/", async (IMovieService service, CancellationToken ct) =>
         {
-            var movies = await service.GetAllMovies();
+            var movies = await service.GetAllMovies(ct);
             return Results.Ok(movies);
-        })
-        .Produces<IEnumerable<GetMoviesDto>>(StatusCodes.Status200OK);
+        });
 
         // GET BY ID
         group.MapGet("/{movieId:guid}", async (Guid movieId, IMovieService service) =>
         {
             var movie = await service.GetMovieById(movieId);
-
-            return movie is null
-                ? Results.NotFound()
-                : Results.Ok(movie);
-        })
-        .Produces<GetMovieDto>(StatusCodes.Status200OK)
-        .Produces(StatusCodes.Status404NotFound);
+            return Results.Ok(movie);
+        });
 
         // CREATE
         group.MapPost("/", async (
             [FromForm] CreateMovieRequest form,
-            IMovieService service) =>
+            IMovieService service,
+            CancellationToken ct) =>
         {
             byte[]? imageBytes = null;
 
@@ -45,7 +40,7 @@ public static class MovieEndpoints
                 imageBytes = ms.ToArray();
             }
 
-            var dto = new CreateMovieDto
+            var request = new CreateMovieDto
             {
                 Title = form.Title,
                 Genre = form.Genre,
@@ -55,29 +50,26 @@ public static class MovieEndpoints
                 Description = form.Description,
                 Image = imageBytes
             };
+                        var movie = await service.AddMovie(request, ct);
 
-            var movie = await service.AddMovie(dto);
-
-            return Results.Created(
-                $"filmaholic/v1/movies/{movie.Id}",
+            return TypedResults.Created(
+                $"/filmaholic/v1/movies/{movie.Id}",
                 movie);
-        })
-        .Accepts<CreateMovieRequest>("multipart/form-data")
-        .Produces<GetMovieDto>(StatusCodes.Status201Created)
-        .DisableAntiforgery();
+        });
 
         // UPDATE (PATCH)
         group.MapPatch("/{movieId:guid}/edit", async (
             Guid movieId,
             [FromForm] UpdateMovieRequest form,
-            IMovieService service) =>
+            IMovieService service,
+            CancellationToken ct) =>
         {
             byte[]? imageBytes = null;
 
             if (form.Image is not null)
             {
                 using var ms = new MemoryStream();
-                await form.Image.CopyToAsync(ms);
+                await form.Image.CopyToAsync(ms, ct);
                 imageBytes = ms.ToArray();
             }
 
@@ -91,27 +83,20 @@ public static class MovieEndpoints
                 UserName = form.UserName,
                 Image = imageBytes
             };
-            var updated = await service.UpdateMovie(movieId, dto);
 
-            return updated is null
-                ? Results.NotFound()
-                : Results.Ok(updated);
-        })
-        .Accepts<UpdateMovieRequest>("multipart/form-data")
-        .Produces<GetMovieDto>(StatusCodes.Status200OK)
-        .Produces(StatusCodes.Status404NotFound)
-        .DisableAntiforgery();
+            var updated = await service.UpdateMovie(movieId, dto, ct);
+
+            return Results.Ok(updated);
+        });
 
         // DELETE
-        group.MapDelete("/{movieId:guid}", async (Guid movieId, IMovieService service) =>
+        group.MapDelete("/{movieId:guid}", async (
+            Guid movieId,
+            IMovieService service,
+            CancellationToken ct) =>
         {
-            var deleted = await service.DeleteMovie(movieId);
-
-            return deleted
-                ? Results.NoContent()
-                : Results.NotFound();
-        })
-        .Produces(StatusCodes.Status204NoContent)
-        .Produces(StatusCodes.Status404NotFound);
+            await service.DeleteMovie(movieId, ct);
+            return Results.NoContent();
+        });
     }
 }
