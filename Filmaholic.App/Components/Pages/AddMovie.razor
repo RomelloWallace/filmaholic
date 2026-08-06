@@ -26,6 +26,11 @@
     </div>
 
     <div class="form-group">
+        <label>User Name:</label>
+        <InputText @bind-Value="movie.UserName" class="form-control" />
+    </div>
+
+    <div class="form-group">
         <label>Year:</label>
         <InputNumber @bind-Value="movie.Year" class="form-control" />
     </div>
@@ -35,6 +40,15 @@
         <InputTextArea @bind-Value="movie.Description"
                        class="form-control"
                        rows="4" />
+    </div>
+
+    <div class="form-group">
+        <label>Image:</label>
+        <InputFile OnChange="OnImageSelected" />
+        @if (movie.Image is not null)
+        {
+            <div class="mt-2">Image selected.</div>
+        }
     </div>
 
     <button type="submit" class="btn btn-primary">
@@ -67,6 +81,16 @@
         await MovieService.AddMovieAsync(movie);
         submitted = true;
         Nav.NavigateTo("/movies");
+    }
+
+    private async Task OnImageSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        var maxBytes = 10 * 1024 * 1024;
+        var size = (int)Math.Min(file.Size, maxBytes);
+        var buffer = new byte[size];
+        await file.OpenReadStream(maxBytes).ReadAsync(buffer);
+        movie.Image = buffer;
     }
 
     private void Cancel()
