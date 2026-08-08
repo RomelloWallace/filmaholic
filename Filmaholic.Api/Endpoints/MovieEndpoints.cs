@@ -50,12 +50,12 @@ public static class MovieEndpoints
                 Description = form.Description,
                 Image = imageBytes
             };
-                        var movie = await service.AddMovie(request, ct);
+            var movie = await service.AddMovie(request, ct);
 
             return TypedResults.Created(
                 $"/filmaholic/v1/movies/{movie.Id}",
                 movie);
-        });
+        }).RequireAuthorization();
 
         // UPDATE (PATCH)
         group.MapPatch("/{movieId:guid}/edit", async (
@@ -87,7 +87,7 @@ public static class MovieEndpoints
             var updated = await service.UpdateMovie(movieId, dto, ct);
 
             return Results.Ok(updated);
-        });
+        }).RequireAuthorization();
 
         // DELETE
         group.MapDelete("/{movieId:guid}", async (
@@ -97,6 +97,6 @@ public static class MovieEndpoints
         {
             await service.DeleteMovie(movieId, ct);
             return Results.NoContent();
-        });
+        }).RequireAuthorization();
     }
 }
