@@ -1,7 +1,9 @@
 using Filmaholic.Api.Classes;
 using Filmaholic.Api.Data;
+using Filmaholic.Api.Extensions;
 using Filmaholic.Api.Interfaces;
 using Filmaholic.Api.Endpoints;
+using Filmaholic.Api.Services;
 using Microsoft.EntityFrameworkCore;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Diagnostics;
@@ -14,9 +16,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddJwtAuthentication(builder.Configuration);
+
 builder.Services.AddDbContext<MoviesDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("MoviesDb")));
 builder.Services.AddScoped<IMovieService, MovieService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.WebHost.UseUrls("http://0.0.0.0:5220");
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateMovieValidator>();
@@ -28,6 +33,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 
 }
+
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.UseExceptionHandler(errorApp =>
 {
     errorApp.Run(async context =>
@@ -69,5 +78,6 @@ app.UseExceptionHandler(errorApp =>
     });
 });
 app.MapMovieEndpoints();
+app.MapAuthEndpoints();
 
 app.Run();
