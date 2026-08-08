@@ -1,15 +1,19 @@
+using System.Net;
 using System.Net.Http.Json;
 using Filmaholic.Shared.Dtos;
+using Microsoft.AspNetCore.Components;
 
 namespace Filmaholic.App.Services;
 
 public class MovieService
 {
     private readonly HttpClient _http;
+    private readonly NavigationManager _nav;
 
-    public MovieService(HttpClient http)
+    public MovieService(HttpClient http, NavigationManager nav)
     {
         _http = http;
+        _nav = nav;
     }
 
     public async Task<List<GetMovieDto>> GetMoviesAsync()
@@ -17,18 +21,28 @@ public class MovieService
         var url = "filmaholic/v1/movies/";
         Console.WriteLine($"Calling: {_http.BaseAddress}{url}");
 
-        var result = await _http.GetFromJsonAsync<List<GetMovieDto>>(url);
-        return result ?? new List<GetMovieDto>();
+        var response = await _http.GetAsync(url);
+        await RedirectOnAuthFailure(response.StatusCode);
+
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<List<GetMovieDto>>() ?? new List<GetMovieDto>();
     }
 
     public async Task<GetMovieDto?> GetMovieAsync(Guid id)
     {
-        return await _http.GetFromJsonAsync<GetMovieDto>($"filmaholic/v1/movies/{id}");
+        var response = await _http.GetAsync($"filmaholic/v1/movies/{id}");
+        await RedirectOnAuthFailure(response.StatusCode);
+
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<GetMovieDto>();
     }
 
     public async Task DeleteMovieAsync(Guid id)
     {
-        await _http.DeleteAsync($"filmaholic/v1/movies/{id}");
+        var response = await _http.DeleteAsync($"filmaholic/v1/movies/{id}");
+        await RedirectOnAuthFailure(response.StatusCode);
+
+        response.EnsureSuccessStatusCode();
     }
 
     public async Task UpdateMovieAsync(UpdateMovieDto movie)
@@ -56,11 +70,12 @@ public class MovieService
         
 
         var response = await _http.PatchAsync($"filmaholic/v1/movies/{movie.Id}/edit", content);
+        await RedirectOnAuthFailure(response.StatusCode);
 
         response.EnsureSuccessStatusCode();
     }
 
-        public async Task AddMovieAsync(CreateMovieDto movie)
+    public async Task AddMovieAsync(CreateMovieDto movie)
     {
         using var content = new MultipartFormDataContent();
 
@@ -84,7 +99,18 @@ public class MovieService
         
 
         var response = await _http.PostAsync("filmaholic/v1/movies/", content);
+        await RedirectOnAuthFailure(response.StatusCode);
 
         response.EnsureSuccessStatusCode();
+    }
+
+    private Task RedirectOnAuthFailure(HttpStatusCode statusCode)
+    {
+        if (statusCode == HttpStatusCode.Unauthorized || statusCode == HttpStatusCode.Forbidden)
+        {
+            _nav.NavigateTo("/login");
+        }
+
+        return Task.CompletedTask;
     }
 }

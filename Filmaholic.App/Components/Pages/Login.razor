@@ -1,0 +1,63 @@
+@page "/login"
+@inject AuthService AuthService
+@inject NavigationManager Nav
+@using Filmaholic.Shared.Dtos
+
+<h3>Login</h3>
+
+<EditForm Model="loginRequest" OnValidSubmit="HandleLogin">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label>Username</label>
+        <InputText @bind-Value="loginRequest.UserName" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Password</label>
+        <InputText @bind-Value="loginRequest.Password" type="password" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary" disabled="@isBusy">
+        @(isBusy ? "Signing in..." : "Sign in")
+    </button>
+</EditForm>
+
+@if (!string.IsNullOrWhiteSpace(errorMessage))
+{
+    <div class="alert alert-danger mt-3">@errorMessage</div>
+}
+
+@code {
+    private LoginRequestDto loginRequest = new();
+    private string? errorMessage;
+    private bool isBusy;
+
+    private async Task HandleLogin()
+    {
+        errorMessage = null;
+        isBusy = true;
+
+        try
+        {
+            var response = await AuthService.LoginAsync(loginRequest);
+            if (response is null)
+            {
+                errorMessage = "Invalid username or password.";
+                return;
+            }
+
+            Nav.NavigateTo("/movies");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Login failed. Please try again.";
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+}
