@@ -32,12 +32,23 @@ public static class MovieEndpoints
             CancellationToken ct) =>
         {
             byte[]? imageBytes = null;
+            const long maxBytes = 10 * 1024 * 1024; // 10 MB
 
             if (form.Image is not null)
             {
-                using var ms = new MemoryStream();
-                await form.Image.CopyToAsync(ms);
-                imageBytes = ms.ToArray();
+                if (form.Image.Length > maxBytes)
+                    return Results.BadRequest(new { Error = "Image too large" });
+
+                try
+                {
+                    await using var ms = new MemoryStream();
+                    await form.Image.CopyToAsync(ms, ct);
+                    imageBytes = ms.ToArray();
+                }
+                catch (Exception)
+                {
+                    return Results.StatusCode(StatusCodes.Status500InternalServerError);
+                }
             }
 
             var request = new CreateMovieDto
@@ -55,7 +66,7 @@ public static class MovieEndpoints
             return TypedResults.Created(
                 $"/filmaholic/v1/movies/{movie.Id}",
                 movie);
-        }).RequireAuthorization();
+        }).RequireAuthorization().WithMetadata(new IgnoreAntiforgeryTokenAttribute());
 
         // UPDATE (PATCH)
         group.MapPatch("/{movieId:guid}/edit", async (
@@ -65,12 +76,23 @@ public static class MovieEndpoints
             CancellationToken ct) =>
         {
             byte[]? imageBytes = null;
+            const long maxBytes = 10 * 1024 * 1024; // 10 MB
 
             if (form.Image is not null)
             {
-                using var ms = new MemoryStream();
-                await form.Image.CopyToAsync(ms, ct);
-                imageBytes = ms.ToArray();
+                if (form.Image.Length > maxBytes)
+                    return Results.BadRequest(new { Error = "Image too large" });
+
+                try
+                {
+                    await using var ms = new MemoryStream();
+                    await form.Image.CopyToAsync(ms, ct);
+                    imageBytes = ms.ToArray();
+                }
+                catch (Exception)
+                {
+                    return Results.StatusCode(StatusCodes.Status500InternalServerError);
+                }
             }
 
             var dto = new UpdateMovieDto
@@ -87,7 +109,7 @@ public static class MovieEndpoints
             var updated = await service.UpdateMovie(movieId, dto, ct);
 
             return Results.Ok(updated);
-        }).RequireAuthorization();
+        }).RequireAuthorization().WithMetadata(new IgnoreAntiforgeryTokenAttribute());
 
         // DELETE
         group.MapDelete("/{movieId:guid}", async (

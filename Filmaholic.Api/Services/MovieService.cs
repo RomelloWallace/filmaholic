@@ -123,7 +123,7 @@ namespace Filmaholic.Api.Classes
 
         public async Task<GetMovieDto> UpdateMovie(Guid movieId, UpdateMovieDto update, CancellationToken ct = default)
         {
-            var movie = await _dbContext.Movies.FindAsync([movieId], ct);
+            var movie = await _dbContext.Movies.FindAsync(movieId, ct);
 
             if (movie is null)
                 throw new NotFoundException($"Movie with id '{movieId}' was not found.");
@@ -145,6 +145,9 @@ namespace Filmaholic.Api.Classes
 
             if (update.UserName is not null)
                 movie.UserName = update.UserName;
+
+            if (update.Image is not null)
+                movie.Image = update.Image;
 
             movie.UpdatedAt = DateTime.UtcNow;
 

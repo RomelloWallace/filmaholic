@@ -6,16 +6,17 @@ namespace Filmaholic.App.Services;
 public sealed class AuthService
 {
     private readonly HttpClient _http;
-    private string? _jwtToken;
+    private readonly TokenStore _tokenStore;
 
-    public AuthService(HttpClient http)
+    public AuthService(HttpClient http, TokenStore tokenStore)
     {
         _http = http;
+        _tokenStore = tokenStore;
     }
 
-    public string? Token => _jwtToken;
+    public string? Token => _tokenStore.Token;
 
-    public bool IsAuthenticated => !string.IsNullOrWhiteSpace(_jwtToken);
+    public bool IsAuthenticated => !string.IsNullOrWhiteSpace(_tokenStore.Token);
 
     public async Task<LoginResponseDto?> LoginAsync(LoginRequestDto login)
     {
@@ -28,7 +29,7 @@ public sealed class AuthService
         var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponseDto>();
         if (loginResponse is not null)
         {
-            _jwtToken = loginResponse.Token;
+            _tokenStore.Token = loginResponse.Token;
         }
 
         return loginResponse;
@@ -36,6 +37,6 @@ public sealed class AuthService
 
     public void Logout()
     {
-        _jwtToken = null;
+        _tokenStore.Token = null;
     }
 }

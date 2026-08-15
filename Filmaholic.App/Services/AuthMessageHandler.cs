@@ -6,18 +6,18 @@ namespace Filmaholic.App.Services;
 
 public sealed class AuthMessageHandler : DelegatingHandler
 {
-    private readonly AuthService _authService;
+    private readonly TokenStore _tokenStore;
 
-    public AuthMessageHandler(AuthService authService)
+    public AuthMessageHandler(TokenStore tokenStore)
     {
-        _authService = authService;
+        _tokenStore = tokenStore;
     }
 
     protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        if (!string.IsNullOrWhiteSpace(_authService.Token))
+        if (!string.IsNullOrWhiteSpace(_tokenStore.Token))
         {
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _authService.Token);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _tokenStore.Token);
         }
 
         return base.SendAsync(request, cancellationToken);

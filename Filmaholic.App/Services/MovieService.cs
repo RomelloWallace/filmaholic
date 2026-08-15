@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Filmaholic.Shared.Dtos;
 using Microsoft.AspNetCore.Components;
+using System.Net.Http.Headers;
 
 namespace Filmaholic.App.Services;
 
@@ -61,11 +62,16 @@ public class MovieService
         }
         if (movie.Image != null)
         {
-            var imageContent = new ByteArrayContent(movie.Image);
-            imageContent.Headers.ContentType =
-                new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+            	var imageContent = new ByteArrayContent(movie.Image);
+            	imageContent.Headers.ContentType =
+            	    new MediaTypeHeaderValue("application/octet-stream");
+            	imageContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
+            	{
+            	    Name = "\"Image\"",
+            	    FileName = "\"image.jpg\""
+            	};
 
-            content.Add(imageContent, "Image", "image.jpg");
+            	content.Add(imageContent, "Image", "image.jpg");
         }
         
 
@@ -90,11 +96,16 @@ public class MovieService
         }
         if (movie.Image != null)
         {
-            var imageContent = new ByteArrayContent(movie.Image);
-            imageContent.Headers.ContentType =
-                new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+            	var imageContent = new ByteArrayContent(movie.Image);
+            	imageContent.Headers.ContentType =
+            	    new MediaTypeHeaderValue("application/octet-stream");
+            	imageContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
+            	{
+            	    Name = "\"Image\"",
+            	    FileName = "\"image.jpg\""
+            	};
 
-            content.Add(imageContent, "Image", "image.jpg");
+            	content.Add(imageContent, "Image", "image.jpg");
         }
         
 

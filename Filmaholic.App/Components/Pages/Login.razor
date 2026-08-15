@@ -34,6 +34,14 @@
     private string? errorMessage;
     private bool isBusy;
 
+    protected override void OnInitialized()
+    {
+        if (AuthService.IsAuthenticated)
+        {
+            Nav.NavigateTo("/movies");
+        }
+    }
+
     private async Task HandleLogin()
     {
         errorMessage = null;
