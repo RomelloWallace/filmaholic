@@ -66,7 +66,7 @@ public static class MovieEndpoints
             return TypedResults.Created(
                 $"/filmaholic/v1/movies/{movie.Id}",
                 movie);
-        }).RequireAuthorization().WithMetadata(new IgnoreAntiforgeryTokenAttribute());
+        }).RequireAuthorization().DisableAntiforgery();
 
         // UPDATE (PATCH)
         group.MapPatch("/{movieId:guid}/edit", async (
@@ -109,7 +109,7 @@ public static class MovieEndpoints
             var updated = await service.UpdateMovie(movieId, dto, ct);
 
             return Results.Ok(updated);
-        }).RequireAuthorization().WithMetadata(new IgnoreAntiforgeryTokenAttribute());
+        }).RequireAuthorization().DisableAntiforgery();
 
         // DELETE
         group.MapDelete("/{movieId:guid}", async (
