@@ -11,18 +11,47 @@ public static class AuthEndpoints
         var group = app.MapGroup("filmaholic/v1/auth")
             .WithTags("Authentication");
 
+        group.MapPost("/register", async (
+            [FromBody] RegisterRequestDto register,
+            IAuthService authService,
+            CancellationToken ct) =>
+        {
+            if (register.Password != register.ConfirmPassword)
+            {
+                return Results.BadRequest(new { Error = "Passwords do not match" });
+            }
+
+            var (success, errors) = await authService.RegisterAsync(
+                register.UserName,
+                register.Email,
+                register.Password,
+                ct);
+
+            if (!success)
+            {
+                return Results.BadRequest(new { Errors = errors });
+            }
+
+            return Results.Created($"/filmaholic/v1/auth/register", new { Message = "User registered successfully" });
+        })
+        .WithName("Register");
+
         group.MapPost("/login", async (
             [FromBody] LoginRequestDto login,
-            IAuthService authService) =>
+            IAuthService authService,
+            CancellationToken ct) =>
         {
-            var isValid = await authService.ValidateCredentialsAsync(login.UserName, login.Password);
+            var (user, success, errors) = await authService.LoginAsync(
+                login.UserName,
+                login.Password,
+                ct);
 
-            if (!isValid)
+            if (!success || user == null)
             {
                 return Results.Unauthorized();
             }
 
-            var token = authService.CreateJwtToken(login.UserName);
+            var token = authService.CreateJwtToken(user);
 
             return Results.Ok(new LoginResponseDto
             {
