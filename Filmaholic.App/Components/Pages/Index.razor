@@ -3,8 +3,8 @@
 @inject AuthService AuthService
 
 @code {
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        Nav.NavigateTo(AuthService.IsAuthenticatedAsync ? "/movies" : "/login", true);
+        Nav.NavigateTo(await AuthService.IsAuthenticatedAsync() ? "/movies" : "/login", true);
     }
 }

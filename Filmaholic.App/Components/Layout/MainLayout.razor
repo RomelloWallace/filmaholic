@@ -4,7 +4,7 @@
 <div class="layout-container">
 
     <header class="top-bar">
-        @if (AuthService.IsAuthenticatedAsync)
+        @if (isAuthenticated)
         {
             <button class="menu-btn" @onclick="ToggleMenu">☰</button>
         }
@@ -13,7 +13,7 @@
 
     <div class="content-wrapper">
 
-        @if (AuthService.IsAuthenticatedAsync)
+        @if (isAuthenticated)
         {
             <div class="overlay @(showMenu ? "visible" : "")" @onclick="CloseMenu"></div>
 
@@ -32,6 +32,12 @@
 
 @code {
     private bool showMenu;
+    private bool isAuthenticated;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isAuthenticated = await AuthService.IsAuthenticatedAsync();
+    }
 
     private void ToggleMenu()
     {
