@@ -1,9 +1,11 @@
 using Filmaholic.Api.Classes;
 using Filmaholic.Api.Data;
+using Filmaholic.Api.Entities;
 using Filmaholic.Api.Extensions;
 using Filmaholic.Api.Interfaces;
 using Filmaholic.Api.Endpoints;
 using Filmaholic.Api.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Diagnostics;
@@ -17,11 +19,17 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddAntiforgery();
 
+builder.Services.AddDbContext<MoviesDbContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("MoviesDb")));
+
+// Add Identity services
+builder.Services.AddIdentity<UserEntity, IdentityRole<Guid>>()
+    .AddEntityFrameworkStores<MoviesDbContext>()
+    .AddDefaultTokenProviders();
+
 builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddAuthorization();
 
-builder.Services.AddDbContext<MoviesDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("MoviesDb")));
 builder.Services.AddScoped<IMovieService, MovieService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.WebHost.UseUrls("http://0.0.0.0:5220");
