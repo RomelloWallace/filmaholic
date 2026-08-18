@@ -16,5 +16,7 @@ public class MovieEntity
 
     public DateTime AddedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+    public Guid UserId { get; set; }
+    public UserEntity? User { get; set; }
 }
 }
