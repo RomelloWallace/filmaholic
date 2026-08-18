@@ -5,6 +5,6 @@
 @code {
     protected override void OnInitialized()
     {
-        Nav.NavigateTo(AuthService.isAuthenticatedAsync ? "/movies" : "/login", true);
+        Nav.NavigateTo(AuthService.IsAuthenticatedAsync ? "/movies" : "/login", true);
     }
 }

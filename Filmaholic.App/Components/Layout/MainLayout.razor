@@ -4,7 +4,7 @@
 <div class="layout-container">
 
     <header class="top-bar">
-        @if (AuthService.isAuthenticatedAsync)
+        @if (AuthService.IsAuthenticatedAsync)
         {
             <button class="menu-btn" @onclick="ToggleMenu">☰</button>
         }
@@ -13,7 +13,7 @@
 
     <div class="content-wrapper">
 
-        @if (AuthService.isAuthenticatedAsync)
+        @if (AuthService.IsAuthenticatedAsync)
         {
             <div class="overlay @(showMenu ? "visible" : "")" @onclick="CloseMenu"></div>
 

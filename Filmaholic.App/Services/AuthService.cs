@@ -19,7 +19,7 @@ public sealed class AuthService
         return await _tokenStore.GetTokenAsync();
     }
 
-    public async Task<bool> isAuthenticatedAsyncAsync()
+    public async Task<bool> IsAuthenticatedAsync()
     {
         var token = await _tokenStore.GetTokenAsync();
         return !string.IsNullOrWhiteSpace(token);
