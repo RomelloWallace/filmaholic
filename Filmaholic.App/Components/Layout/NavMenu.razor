@@ -14,7 +14,7 @@
             </NavLink>
         </div>
 
-        @if (AuthService.IsAuthenticated)
+        @if (isAuthenticated)
         {
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="/movies/add" @onclick="HandleNavigate">
@@ -23,12 +23,30 @@
             </div>
         }
 
-        @if (AuthService.IsAuthenticated)
+        @if (isAuthenticated)
         {
             <div class="nav-item px-3">
                 <button class="nav-link btn btn-link text-start p-0" @onclick="HandleLogout">
                     Logout
                 </button>
+            </div>
+        }
+
+        @if (!isAuthenticated)
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/login">
+                    Login
+                </NavLink>
+            </div>
+        }
+
+        @if (!isAuthenticated)
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/register">
+                    Register
+                </NavLink>
             </div>
         }
 
@@ -45,6 +63,18 @@
     [Inject]
     public NavigationManager Navigation { get; set; } = null!;
 
+    private bool isAuthenticated;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckAuthState();
+    }
+
+    private async Task CheckAuthState()
+    {
+        isAuthenticated = await AuthService.IsAuthenticatedAsync();
+    }
+
     private async Task HandleNavigate()
     {
         await OnNavigate.InvokeAsync();
@@ -52,8 +82,8 @@
 
     private async Task HandleLogout()
     {
-        AuthService.Logout();
-        await OnNavigate.InvokeAsync();
+        await AuthService.LogoutAsync();
+        await CheckAuthState();
         Navigation.NavigateTo("/login");
     }
 }
