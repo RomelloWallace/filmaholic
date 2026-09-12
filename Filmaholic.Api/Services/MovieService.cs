@@ -47,7 +47,11 @@ namespace Filmaholic.Api.Classes
         {
             _dbContext = dbContext;
         }
-        public async Task<GetMovieDto> AddMovie(CreateMovieDto newMovie, CancellationToken ct = default)
+        public async Task<GetMovieDto> AddMovie(
+            CreateMovieDto newMovie,
+            Guid userId,
+            string userName,
+            CancellationToken ct = default)
         {
             var exists = await _dbContext.Movies
                 .AnyAsync(m =>
@@ -66,7 +70,8 @@ namespace Filmaholic.Api.Classes
                 Year = newMovie.Year,
                 AgeGroup = newMovie.AgeGroup,
                 Description = newMovie.Description,
-                UserName = newMovie.UserName,
+                UserId = userId,
+                UserName = userName,
                 Image = newMovie.Image
             };
 
@@ -76,10 +81,10 @@ namespace Filmaholic.Api.Classes
             return MapSingleMovieToRecord(createdMovie);
         }
 
-        public async Task DeleteMovie(Guid movieId, CancellationToken ct = default)
+        public async Task DeleteMovie(Guid movieId, Guid userId, CancellationToken ct = default)
         {
             var movie = await _dbContext.Movies
-                .FirstOrDefaultAsync(m => m.Id == movieId, ct);
+            .FirstOrDefaultAsync(m => m.Id == movieId && m.UserId == userId, ct);
 
             if (movie is null)
                 throw new NotFoundException($"Movie with id '{movieId}' was not found.");
@@ -121,9 +126,14 @@ namespace Filmaholic.Api.Classes
             return MapSingleMovieToRecord(movie);
         }
 
-        public async Task<GetMovieDto> UpdateMovie(Guid movieId, UpdateMovieDto update, CancellationToken ct = default)
+        public async Task<GetMovieDto> UpdateMovie(
+            Guid movieId,
+            UpdateMovieDto update,
+            Guid userId,
+            CancellationToken ct = default)
         {
-            var movie = await _dbContext.Movies.FindAsync(movieId, ct);
+            var movie = await _dbContext.Movies
+                .FirstOrDefaultAsync(m => m.Id == movieId && m.UserId == userId, ct);
 
             if (movie is null)
                 throw new NotFoundException($"Movie with id '{movieId}' was not found.");
@@ -142,9 +152,6 @@ namespace Filmaholic.Api.Classes
 
             if (update.AgeGroup is not null)
                 movie.AgeGroup = update.AgeGroup;
-
-            if (update.UserName is not null)
-                movie.UserName = update.UserName;
 
             if (update.Image is not null)
                 movie.Image = update.Image;

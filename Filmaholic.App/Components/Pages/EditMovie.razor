@@ -102,7 +102,6 @@
         updateMovie.AgeGroup = movie.AgeGroup;
         updateMovie.Year = movie.Year;
         updateMovie.Description = movie.Description;
-        updateMovie.UserName = movie.UserName;
         updateMovie.Image = movie.Image;
         Console.WriteLine($"Updating movie:{updateMovie.Id} {updateMovie.Title}, {updateMovie.Genre}, {updateMovie.AgeGroup}, {updateMovie.Year}, {updateMovie.Description}");
         await MovieService.UpdateMovieAsync(updateMovie);

@@ -21,11 +21,6 @@ public sealed class CreateMovieValidator : AbstractValidator<CreateMovieRequest>
             .NotEmpty()
             .WithMessage("Age group is required.");
 
-        RuleFor(x => x.UserName)
-            .NotEmpty()
-            .WithMessage("User name is required.")
-            .MaximumLength(100);
-
         RuleFor(x => x.Year)
             .InclusiveBetween(1888, DateTime.UtcNow.Year)
             .WithMessage("Year must be a valid film year.");

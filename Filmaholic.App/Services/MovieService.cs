@@ -54,7 +54,6 @@ public class MovieService
         content.Add(new StringContent(movie.Title ?? ""), "Title");
         content.Add(new StringContent(movie.Genre ?? ""), "Genre");
         content.Add(new StringContent(movie.AgeGroup ?? ""), "AgeGroup");
-        content.Add(new StringContent(movie.UserName ?? ""), "UserName");
         content.Add(new StringContent(movie.Description ?? ""), "Description");
         if (movie.Year.HasValue)
         {
@@ -88,7 +87,6 @@ public class MovieService
         content.Add(new StringContent(movie.Title ?? ""), "Title");
         content.Add(new StringContent(movie.Genre ?? ""), "Genre");
         content.Add(new StringContent(movie.AgeGroup ?? ""), "AgeGroup");
-        content.Add(new StringContent(movie.UserName ?? ""), "UserName");
         content.Add(new StringContent(movie.Description ?? ""), "Description");
         if (movie.Year.HasValue)
         {

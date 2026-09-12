@@ -2,6 +2,8 @@ using Filmaholic.Shared.Dtos;
 using Filmaholic.Api.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Filmaholic.Api.Requests;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace Filmaholic.Api.Endpoints;
 
@@ -30,8 +32,10 @@ public static class MovieEndpoints
         group.MapPost("/", async (
             [FromForm] CreateMovieRequest form,
             IMovieService service,
+            HttpContext httpContext,
             CancellationToken ct) =>
         {
+            var (userId, userName) = GetAuthenticatedUser(httpContext);
             byte[]? imageBytes = null;
             const long maxBytes = 10 * 1024 * 1024; // 10 MB
 
@@ -57,12 +61,11 @@ public static class MovieEndpoints
                 Title = form.Title,
                 Genre = form.Genre,
                 AgeGroup = form.AgeGroup,
-                UserName = form.UserName,
                 Year = form.Year,
                 Description = form.Description,
                 Image = imageBytes
             };
-            var movie = await service.AddMovie(request, ct);
+            var movie = await service.AddMovie(request, userId, userName, ct);
 
             return TypedResults.Created(
                 $"/filmaholic/v1/movies/{movie.Id}",
@@ -74,8 +77,10 @@ public static class MovieEndpoints
             Guid movieId,
             [FromForm] UpdateMovieRequest form,
             IMovieService service,
+            HttpContext httpContext,
             CancellationToken ct) =>
         {
+            var (userId, _) = GetAuthenticatedUser(httpContext);
             byte[]? imageBytes = null;
             const long maxBytes = 10 * 1024 * 1024; // 10 MB
 
@@ -103,11 +108,10 @@ public static class MovieEndpoints
                 AgeGroup = form.AgeGroup,
                 Year = form.Year,
                 Description = form.Description,
-                UserName = form.UserName,
                 Image = imageBytes
             };
 
-            var updated = await service.UpdateMovie(movieId, dto, ct);
+            var updated = await service.UpdateMovie(movieId, dto, userId, ct);
 
             return Results.Ok(updated);
         }).DisableAntiforgery();
@@ -116,10 +120,27 @@ public static class MovieEndpoints
         group.MapDelete("/{movieId:guid}", async (
             Guid movieId,
             IMovieService service,
+            HttpContext httpContext,
             CancellationToken ct) =>
         {
-            await service.DeleteMovie(movieId, ct);
+            var (userId, _) = GetAuthenticatedUser(httpContext);
+            await service.DeleteMovie(movieId, userId, ct);
             return Results.NoContent();
         });
+    }
+
+    private static (Guid UserId, string UserName) GetAuthenticatedUser(HttpContext httpContext)
+    {
+        var userIdValue = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? httpContext.User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+
+        if (!Guid.TryParse(userIdValue, out var userId))
+            throw new UnauthorizedAccessException("The authenticated user identifier is invalid.");
+
+        var userName = httpContext.User.FindFirstValue(ClaimTypes.Name)
+            ?? httpContext.User.FindFirstValue(JwtRegisteredClaimNames.UniqueName)
+            ?? throw new UnauthorizedAccessException("The authenticated username is missing.");
+
+        return (userId, userName);
     }
 }
