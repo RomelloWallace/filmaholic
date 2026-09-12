@@ -24,8 +24,8 @@ public static class MauiProgram
 
         // Register auth services and HttpClient with a delegating handler
         var baseAddress = OperatingSystem.IsAndroid()
-            ? "http://10.0.2.2:5220/"
-            : "http://localhost:5220/";
+            ? "https://10.0.2.2:7047/"
+            : "https://localhost:7047/";
 
         builder.Services.AddSingleton<TokenStore>();
         builder.Services.AddSingleton<AuthenticationStateNotifier>();

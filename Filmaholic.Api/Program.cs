@@ -32,7 +32,6 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<IMovieService, MovieService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.WebHost.UseUrls("http://0.0.0.0:5220");
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateMovieValidator>();
 var app = builder.Build();
@@ -46,6 +45,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseHttpsRedirection();
 app.UseAntiforgery();
 
 app.UseExceptionHandler(errorApp =>
