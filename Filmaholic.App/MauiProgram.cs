@@ -28,6 +28,7 @@ public static class MauiProgram
             : "http://localhost:5220/";
 
         builder.Services.AddSingleton<TokenStore>();
+        builder.Services.AddSingleton<AuthenticationStateNotifier>();
         builder.Services.AddScoped<AuthService>();
         builder.Services.AddTransient<AuthMessageHandler>();
         builder.Services.AddHttpClient("FilmaholicApi", client =>
