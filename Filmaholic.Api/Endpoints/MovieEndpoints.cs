@@ -9,7 +9,8 @@ public static class MovieEndpoints
 {
     public static void MapMovieEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("filmaholic/v1/movies");
+        var group = app.MapGroup("filmaholic/v1/movies")
+            .RequireAuthorization();
 
         // GET ALL
         group.MapGet("/", async (IMovieService service, CancellationToken ct) =>
@@ -66,7 +67,7 @@ public static class MovieEndpoints
             return TypedResults.Created(
                 $"/filmaholic/v1/movies/{movie.Id}",
                 movie);
-        }).RequireAuthorization().DisableAntiforgery();
+        }).DisableAntiforgery();
 
         // UPDATE (PATCH)
         group.MapPatch("/{movieId:guid}/edit", async (
@@ -109,7 +110,7 @@ public static class MovieEndpoints
             var updated = await service.UpdateMovie(movieId, dto, ct);
 
             return Results.Ok(updated);
-        }).RequireAuthorization().DisableAntiforgery();
+        }).DisableAntiforgery();
 
         // DELETE
         group.MapDelete("/{movieId:guid}", async (
@@ -119,6 +120,6 @@ public static class MovieEndpoints
         {
             await service.DeleteMovie(movieId, ct);
             return Results.NoContent();
-        }).RequireAuthorization();
+        });
     }
 }
