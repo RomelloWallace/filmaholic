@@ -1,5 +1,7 @@
 ﻿@inherits LayoutComponentBase
+@implements IDisposable
 @inject Filmaholic.App.Services.AuthService AuthService
+@inject Filmaholic.App.Services.AuthenticationStateNotifier AuthenticationStateNotifier
 
 <div class="layout-container">
 
@@ -36,7 +38,17 @@
 
     protected override async Task OnInitializedAsync()
     {
+        AuthenticationStateNotifier.AuthenticationStateChanged += HandleAuthenticationStateChanged;
         isAuthenticated = await AuthService.IsAuthenticatedAsync();
+    }
+
+    private void HandleAuthenticationStateChanged()
+    {
+        _ = InvokeAsync(async () =>
+        {
+            isAuthenticated = await AuthService.IsAuthenticatedAsync();
+            StateHasChanged();
+        });
     }
 
     private void ToggleMenu()
@@ -47,5 +59,10 @@
     private void CloseMenu()
     {
         showMenu = false;
+    }
+
+    public void Dispose()
+    {
+        AuthenticationStateNotifier.AuthenticationStateChanged -= HandleAuthenticationStateChanged;
     }
 }

@@ -1,0 +1,42 @@
+@using Microsoft.AspNetCore.Components
+@inject Filmaholic.App.Services.AuthService AuthService
+@inject NavigationManager Navigation
+
+@if (isLoading)
+{
+    <p>Checking access...</p>
+}
+else if (isAuthorized)
+{
+    <RouteView RouteData="RouteData" DefaultLayout="DefaultLayout" />
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public RouteData RouteData { get; set; } = null!;
+
+    [Parameter]
+    public Type? DefaultLayout { get; set; }
+
+    private bool isLoading = true;
+    private bool isAuthorized;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        isLoading = true;
+
+        var requiresAuthentication = Attribute.IsDefined(
+            RouteData.PageType,
+            typeof(RequireAuthenticationAttribute),
+            inherit: true);
+
+        isAuthorized = !requiresAuthentication || await AuthService.IsAuthenticatedAsync();
+        isLoading = false;
+
+        if (!isAuthorized)
+        {
+            var returnUrl = Navigation.ToBaseRelativePath(Navigation.Uri);
+            Navigation.NavigateTo($"/login?returnUrl={Uri.EscapeDataString("/" + returnUrl)}");
+        }
+    }
+}

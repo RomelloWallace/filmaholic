@@ -7,11 +7,16 @@ public sealed class AuthService
 {
     private readonly HttpClient _http;
     private readonly TokenStore _tokenStore;
+    private readonly AuthenticationStateNotifier _authenticationStateNotifier;
 
-    public AuthService(HttpClient http, TokenStore tokenStore)
+    public AuthService(
+        HttpClient http,
+        TokenStore tokenStore,
+        AuthenticationStateNotifier authenticationStateNotifier)
     {
         _http = http;
         _tokenStore = tokenStore;
+        _authenticationStateNotifier = authenticationStateNotifier;
     }
 
     public async Task<string?> GetTokenAsync()
@@ -37,7 +42,8 @@ public sealed class AuthService
             var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponseDto>();
             if (loginResponse is not null)
             {
-                await _tokenStore.StoreTokenAsync(loginResponse.Token);  // await the async method
+                await _tokenStore.StoreTokenAsync(loginResponse.Token);
+                _authenticationStateNotifier.NotifyAuthenticationStateChanged();
             }
         
             return (loginResponse, null);
@@ -51,6 +57,7 @@ public sealed class AuthService
     public Task LogoutAsync()
     {
         _tokenStore.ClearToken();
+        _authenticationStateNotifier.NotifyAuthenticationStateChanged();
         return Task.CompletedTask;
     }
 

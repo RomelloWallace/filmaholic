@@ -1,4 +1,6 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@implements IDisposable
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">Filmaholic</a>
     </div>
@@ -61,13 +63,26 @@
     public AuthService AuthService { get; set; } = null!;
 
     [Inject]
+    public AuthenticationStateNotifier AuthenticationStateNotifier { get; set; } = null!;
+
+    [Inject]
     public NavigationManager Navigation { get; set; } = null!;
 
     private bool isAuthenticated;
 
     protected override async Task OnInitializedAsync()
     {
+        AuthenticationStateNotifier.AuthenticationStateChanged += HandleAuthenticationStateChanged;
         await CheckAuthState();
+    }
+
+    private void HandleAuthenticationStateChanged()
+    {
+        _ = InvokeAsync(async () =>
+        {
+            await CheckAuthState();
+            StateHasChanged();
+        });
     }
 
     private async Task CheckAuthState()
@@ -85,5 +100,10 @@
         await AuthService.LogoutAsync();
         await CheckAuthState();
         Navigation.NavigateTo("/login");
+    }
+
+    public void Dispose()
+    {
+        AuthenticationStateNotifier.AuthenticationStateChanged -= HandleAuthenticationStateChanged;
     }
 }

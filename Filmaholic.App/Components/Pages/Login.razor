@@ -2,6 +2,7 @@
 @inject AuthService AuthService
 @inject NavigationManager Nav
 @using Filmaholic.Shared.Dtos
+@using Microsoft.AspNetCore.Components
 
 <h3>Login</h3>
 
@@ -34,6 +35,9 @@
 </div>
 
 @code {
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    private string? ReturnUrl { get; set; }
+
     private LoginRequestDto loginRequest = new();
     private string? errorMessage;
     private bool isBusy;
@@ -42,7 +46,7 @@
     {
         if (await AuthService.IsAuthenticatedAsync())
         {
-            Nav.NavigateTo("/movies");
+            Nav.NavigateTo(GetDestination());
         }
     }
 
@@ -60,7 +64,7 @@
                 return;
             }
 
-            Nav.NavigateTo("/movies");
+            Nav.NavigateTo(GetDestination());
         }
         catch (Exception ex)
         {
@@ -71,5 +75,17 @@
         {
             isBusy = false;
         }
+    }
+
+    private string GetDestination()
+    {
+        if (!string.IsNullOrWhiteSpace(ReturnUrl)
+            && ReturnUrl.StartsWith('/')
+            && !ReturnUrl.StartsWith("//"))
+        {
+            return ReturnUrl;
+        }
+
+        return "/movies";
     }
 }
