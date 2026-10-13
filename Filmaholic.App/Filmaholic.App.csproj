@@ -76,4 +76,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Filmaholic.Shared\Filmaholic.Shared.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="appsettings.json" />
+  </ItemGroup>
 </Project>

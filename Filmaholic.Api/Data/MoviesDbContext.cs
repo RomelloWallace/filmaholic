@@ -21,6 +21,14 @@ public class MoviesDbContext : IdentityDbContext<UserEntity, IdentityRole<Guid>,
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Title).IsRequired();
+
+            entity.HasIndex(e => new { e.Title, e.Year })
+                .IsUnique()
+                .HasFilter("\"Year\" IS NOT NULL");
+            entity.HasIndex(e => e.Title)
+                .IsUnique()
+                .HasDatabaseName("IX_Movies_Title_Year_Null")
+                .HasFilter("\"Year\" IS NULL");
             
             entity.HasOne(e => e.User)
                 .WithMany()

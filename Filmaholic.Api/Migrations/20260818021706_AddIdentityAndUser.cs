@@ -60,6 +60,19 @@ namespace Filmaholic.Api.Migrations
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
                 });
 
+            migrationBuilder.Sql("""
+                INSERT INTO AspNetUsers
+                    (Id, CreatedAt, IsActive, EmailConfirmed, PhoneNumberConfirmed,
+                     TwoFactorEnabled, LockoutEnabled, AccessFailedCount, UserName, NormalizedUserName)
+                VALUES
+                    ('11111111-1111-1111-1111-111111111111', '2026-01-01 00:00:00', 0, 0, 0, 0, 0, 0,
+                     'legacy-import', 'LEGACY-IMPORT');
+
+                UPDATE Movies
+                SET UserId = '11111111-1111-1111-1111-111111111111',
+                    Title = trim(Title);
+                """);
+
             migrationBuilder.CreateTable(
                 name: "AspNetRoleClaims",
                 columns: table => new
@@ -196,6 +209,20 @@ namespace Filmaholic.Api.Migrations
                 name: "IX_AspNetUserRoles_RoleId",
                 table: "AspNetUserRoles",
                 column: "RoleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Movies_Title_Year",
+                table: "Movies",
+                columns: new[] { "Title", "Year" },
+                unique: true,
+                filter: "\"Year\" IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Movies_Title_Year_Null",
+                table: "Movies",
+                column: "Title",
+                unique: true,
+                filter: "\"Year\" IS NULL");
 
             migrationBuilder.CreateIndex(
                 name: "EmailIndex",

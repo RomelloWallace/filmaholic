@@ -7,7 +7,6 @@ using Filmaholic.Api.Endpoints;
 using Filmaholic.Api.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Filmaholic.Api.Validators;
@@ -32,7 +31,6 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<IMovieService, MovieService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateMovieValidator>();
 var app = builder.Build();
 

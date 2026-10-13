@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Filmaholic.Api.Requests;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using FluentValidation;
 
 namespace Filmaholic.Api.Endpoints;
 
@@ -31,10 +32,21 @@ public static class MovieEndpoints
         // CREATE
         group.MapPost("/", async (
             [FromForm] CreateMovieRequest form,
+            [FromServices] IValidator<CreateMovieRequest> validator,
             IMovieService service,
             HttpContext httpContext,
             CancellationToken ct) =>
         {
+            var validation = await validator.ValidateAsync(form, ct);
+            if (!validation.IsValid)
+            {
+                return Results.ValidationProblem(validation.Errors
+                    .GroupBy(error => error.PropertyName)
+                    .ToDictionary(
+                        group => group.Key,
+                        group => group.Select(error => error.ErrorMessage).ToArray()));
+            }
+
             var (userId, userName) = GetAuthenticatedUser(httpContext);
             byte[]? imageBytes = null;
             const long maxBytes = 10 * 1024 * 1024; // 10 MB
@@ -76,10 +88,21 @@ public static class MovieEndpoints
         group.MapPatch("/{movieId:guid}/edit", async (
             Guid movieId,
             [FromForm] UpdateMovieRequest form,
+            [FromServices] IValidator<UpdateMovieRequest> validator,
             IMovieService service,
             HttpContext httpContext,
             CancellationToken ct) =>
         {
+            var validation = await validator.ValidateAsync(form, ct);
+            if (!validation.IsValid)
+            {
+                return Results.ValidationProblem(validation.Errors
+                    .GroupBy(error => error.PropertyName)
+                    .ToDictionary(
+                        group => group.Key,
+                        group => group.Select(error => error.ErrorMessage).ToArray()));
+            }
+
             var (userId, _) = GetAuthenticatedUser(httpContext);
             byte[]? imageBytes = null;
             const long maxBytes = 10 * 1024 * 1024; // 10 MB

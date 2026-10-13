@@ -9,9 +9,19 @@ public static class JwtExtensions
 {
     public static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
-        var jwtSettings = new JwtSettings();
-        configuration.GetSection("Jwt").Bind(jwtSettings);
-        services.AddSingleton(jwtSettings);
+        var jwtSection = configuration.GetSection("Jwt");
+        services.AddOptions<JwtSettings>()
+            .Bind(jwtSection)
+            .Validate(settings => Encoding.UTF8.GetByteCount(settings.Key) >= 32,
+                "Jwt:Key must contain at least 32 bytes.")
+            .Validate(settings => !string.IsNullOrWhiteSpace(settings.Issuer),
+                "Jwt:Issuer is required.")
+            .Validate(settings => !string.IsNullOrWhiteSpace(settings.Audience),
+                "Jwt:Audience is required.")
+            .ValidateOnStart();
+
+        var jwtSettings = jwtSection.Get<JwtSettings>()
+            ?? throw new InvalidOperationException("Jwt configuration is required.");
 
         var keyBytes = Encoding.UTF8.GetBytes(jwtSettings.Key);
         var signingKey = new SymmetricSecurityKey(keyBytes);

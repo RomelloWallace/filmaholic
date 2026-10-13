@@ -64,6 +64,15 @@ namespace Filmaholic.Api.Migrations
 
                     b.HasIndex("UserId");
 
+                    b.HasIndex("Title", "Year")
+                        .IsUnique()
+                        .HasFilter("\"Year\" IS NOT NULL");
+
+                    b.HasIndex("Title")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Movies_Title_Year_Null")
+                        .HasFilter("\"Year\" IS NULL");
+
                     b.ToTable("Movies");
                 });
 

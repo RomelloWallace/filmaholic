@@ -1,6 +1,8 @@
 ﻿using Filmaholic.App.Components;
 using Filmaholic.App.Services;
 using Microsoft.Extensions.Logging;
+using System.Reflection;
+using System.Text.Json;
 
 namespace Filmaholic.App;
 
@@ -22,10 +24,29 @@ public static class MauiProgram
 		builder.Logging.AddDebug();
 #endif
 
-        // Register auth services and HttpClient with a delegating handler
-        var baseAddress = OperatingSystem.IsAndroid()
+        using var appSettingsStream = Assembly.GetExecutingAssembly()
+            .GetManifestResourceStream("Filmaholic.App.appsettings.json")
+            ?? throw new InvalidOperationException("The bundled API settings file is missing.");
+        using var appSettings = JsonDocument.Parse(appSettingsStream);
+
+#if DEBUG
+        var configuredBaseAddress = OperatingSystem.IsAndroid()
             ? "https://10.0.2.2:7047/"
             : "https://localhost:7047/";
+#else
+    var configuredBaseAddress = appSettings.RootElement
+        .GetProperty("Api")
+        .GetProperty("BaseUrl")
+        .GetString();
+#endif
+
+        if (!Uri.TryCreate(configuredBaseAddress, UriKind.Absolute, out var apiBaseAddress) ||
+            apiBaseAddress.Scheme != Uri.UriSchemeHttps ||
+            apiBaseAddress.Host.EndsWith(".invalid", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException(
+                "Set Api:BaseUrl in Filmaholic.App/appsettings.json to the deployed HTTPS API before publishing.");
+        }
 
         builder.Services.AddSingleton<TokenStore>();
         builder.Services.AddSingleton<AuthenticationStateNotifier>();
@@ -33,7 +54,7 @@ public static class MauiProgram
         builder.Services.AddTransient<AuthMessageHandler>();
         builder.Services.AddHttpClient("FilmaholicApi", client =>
         {
-            client.BaseAddress = new Uri(baseAddress);
+            client.BaseAddress = apiBaseAddress;
         })
         .AddHttpMessageHandler<AuthMessageHandler>();
 

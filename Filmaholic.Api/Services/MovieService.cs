@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Filmaholic.Shared.Dtos;
 using Filmaholic.Api.Endpoints;
 using Filmaholic.Api.Interfaces;
+using Microsoft.Data.Sqlite;
 
 namespace Filmaholic.Api.Classes
 {
@@ -53,9 +54,10 @@ namespace Filmaholic.Api.Classes
             string userName,
             CancellationToken ct = default)
         {
+            var normalizedTitle = newMovie.Title.Trim();
             var exists = await _dbContext.Movies
                 .AnyAsync(m =>
-                    m.Title == newMovie.Title &&
+                    m.Title == normalizedTitle &&
                     m.Year == newMovie.Year,
                     ct);
 
@@ -65,7 +67,7 @@ namespace Filmaholic.Api.Classes
             var createdMovie = new MovieEntity
             {
                 Id = Guid.NewGuid(),
-                Title = newMovie.Title.Trim(),
+                Title = normalizedTitle,
                 Genre = newMovie.Genre,
                 Year = newMovie.Year,
                 AgeGroup = newMovie.AgeGroup,
@@ -76,7 +78,14 @@ namespace Filmaholic.Api.Classes
             };
 
             await _dbContext.Movies.AddAsync(createdMovie, ct);
-            await _dbContext.SaveChangesAsync(ct);
+            try
+            {
+                await _dbContext.SaveChangesAsync(ct);
+            }
+            catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
+            {
+                throw new ConflictException("A movie with the same title and year already exists.");
+            }
 
             return MapSingleMovieToRecord(createdMovie);
         }
@@ -138,8 +147,20 @@ namespace Filmaholic.Api.Classes
             if (movie is null)
                 throw new NotFoundException($"Movie with id '{movieId}' was not found.");
 
+            var nextTitle = update.Title?.Trim() ?? movie.Title;
+            var nextYear = update.Year ?? movie.Year;
+            var duplicateExists = await _dbContext.Movies
+                .AnyAsync(m =>
+                    m.Id != movieId &&
+                    m.Title == nextTitle &&
+                    m.Year == nextYear,
+                    ct);
+
+            if (duplicateExists)
+                throw new ConflictException("A movie with the same title and year already exists.");
+
             if (update.Title is not null)
-                movie.Title = update.Title.Trim();
+                movie.Title = nextTitle;
 
             if (update.Genre is not null)
                 movie.Genre = update.Genre;
@@ -158,9 +179,22 @@ namespace Filmaholic.Api.Classes
 
             movie.UpdatedAt = DateTime.UtcNow;
 
-            await _dbContext.SaveChangesAsync(ct);
+            try
+            {
+                await _dbContext.SaveChangesAsync(ct);
+            }
+            catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
+            {
+                throw new ConflictException("A movie with the same title and year already exists.");
+            }
 
             return MapSingleMovieToRecord(movie);
         }
+
+        private static bool IsUniqueConstraintViolation(DbUpdateException exception) =>
+            exception.InnerException is SqliteException
+            {
+                SqliteExtendedErrorCode: 1555 or 2067
+            };
     }
 }
