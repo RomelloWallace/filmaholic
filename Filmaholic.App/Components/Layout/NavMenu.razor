@@ -1,58 +1,43 @@
 ﻿@implements IDisposable
 
-<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">Filmaholic</a>
-    </div>
-</div>
-
-<div class="nav-scrollable">
-
-    <nav class="nav flex-column">
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/movies" @onclick="HandleNavigate">
-                Movies
+<div class="nav-panel">
+    <p class="nav-label">YOUR SPACE</p>
+    <nav class="side-nav" aria-label="Main navigation">
+        @if (isAuthenticated)
+        {
+            <NavLink class="side-link" href="/movies" @onclick="HandleNavigate">
+                <span class="side-link-icon" aria-hidden="true">01</span>
+                <span>My collection</span>
             </NavLink>
-        </div>
-
-        @if (isAuthenticated)
-        {
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="/movies/add" @onclick="HandleNavigate">
-                    Add Movie
-                </NavLink>
-            </div>
+            <NavLink class="side-link" href="/movies/add" @onclick="HandleNavigate">
+                <span class="side-link-icon" aria-hidden="true">+</span>
+                <span>Add a film</span>
+            </NavLink>
+            <button class="side-link side-link-button" @onclick="HandleLogout">
+                <span class="side-link-icon" aria-hidden="true">↗</span>
+                <span>Sign out</span>
+            </button>
         }
-
-        @if (isAuthenticated)
+        else
         {
-            <div class="nav-item px-3">
-                <button class="nav-link btn btn-link text-start p-0" @onclick="HandleLogout">
-                    Logout
-                </button>
-            </div>
+            <NavLink class="side-link" href="/login">
+                <span class="side-link-icon" aria-hidden="true">↪</span>
+                <span>Sign in</span>
+            </NavLink>
+            <NavLink class="side-link" href="/register">
+                <span class="side-link-icon" aria-hidden="true">+</span>
+                <span>Create account</span>
+            </NavLink>
         }
-
-        @if (!isAuthenticated)
-        {
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="/login">
-                    Login
-                </NavLink>
-            </div>
-        }
-
-        @if (!isAuthenticated)
-        {
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="/register">
-                    Register
-                </NavLink>
-            </div>
-        }
-
     </nav>
+
+    @if (isAuthenticated)
+    {
+        <div class="sidebar-footnote">
+            <span class="sidebar-spark" aria-hidden="true">✳</span>
+            <p>Keep the films<br />that stay with you.</p>
+        </div>
+    }
 </div>
 
 @code {

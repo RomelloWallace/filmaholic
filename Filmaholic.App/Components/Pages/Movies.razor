@@ -7,29 +7,118 @@
 
 @inject MovieService MovieService
 
-<h3>Movies</h3>
+<section class="library-page">
+    <div class="page-heading library-heading">
+        <div>
+            <p class="eyebrow">YOUR PERSONAL COLLECTION</p>
+            <h1>The film shelf</h1>
+            <p class="heading-note">A growing record of everything worth watching.</p>
+        </div>
+        <a class="button button-primary" href="/movies/add"><span aria-hidden="true">+</span> Add a film</a>
+    </div>
 
-@if (movies == null)
-{
-    <p>Loading...</p>
-}
-else if (movies.Count == 0)
-{
-    <p>No movies found.</p>
-}
-else
-{
-    @foreach (var movie in movies)
+    <div class="library-toolbar">
+        <label class="search-field">
+            <span class="sr-only">Search your collection</span>
+            <span class="search-icon" aria-hidden="true"></span>
+            <input type="search" placeholder="Search your collection" @bind="searchText" @bind:event="oninput" />
+        </label>
+        @if (genres.Count > 0)
+        {
+            <label class="select-field">
+                <span class="sr-only">Filter by genre</span>
+                <InputSelect @bind-Value="selectedGenre">
+                    <option value="">All genres</option>
+                    @foreach (var genre in genres)
+                    {
+                        <option value="@genre">@genre</option>
+                    }
+                </InputSelect>
+            </label>
+        }
+        @if (movies is not null)
+        {
+            <span class="library-count">@filteredMovies.Count @(filteredMovies.Count == 1 ? "film" : "films")</span>
+        }
+    </div>
+
+    @if (movies is null)
     {
-        <a href="/movie/@movie.Id">
-            @movie.Title (@movie.Year)
-        </a>
-        <br />
+        <div class="loading-state"><span class="loading-mark"></span><p>Opening your collection...</p></div>
     }
-}
+    else if (movies.Count == 0)
+    {
+        <div class="empty-state">
+            <span class="empty-mark" aria-hidden="true">F</span>
+            <p class="eyebrow">A FRESH REEL</p>
+            <h2>Your shelf is waiting.</h2>
+            <p>Add the first film you want to remember.</p>
+            <a class="button button-primary" href="/movies/add">Add your first film</a>
+        </div>
+    }
+    else if (filteredMovies.Count == 0)
+    {
+        <div class="empty-state compact-empty">
+            <h2>No films match that search.</h2>
+            <p>Try another title or choose a different genre.</p>
+        </div>
+    }
+    else
+    {
+        <section class="movie-grid" aria-label="Movies in your collection">
+            @foreach (var movie in filteredMovies)
+            {
+                <a class="movie-card" href="/movie/@movie.Id">
+                    <div class="poster-art @GetPosterTone(movie.Genre)">
+                        <span class="poster-overline">FILM / INDEX</span>
+                        <span class="poster-glyph" aria-hidden="true">F</span>
+                        <div class="poster-caption">
+                            <span class="poster-genre">@movie.Genre</span>
+                            <h2>@movie.Title</h2>
+                            <span class="poster-year">@(movie.Year?.ToString() ?? "YEAR UNKNOWN")</span>
+                        </div>
+                    </div>
+                    <div class="movie-card-meta">
+                        <span>@movie.AgeGroup</span>
+                        <span class="meta-dot" aria-hidden="true"></span>
+                        <span>Added by @movie.UserName</span>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(movie.Description))
+                    {
+                        <p class="movie-card-description">@movie.Description</p>
+                    }
+                </a>
+            }
+        </section>
+    }
+</section>
 
 @code {
     private List<GetMovieDto>? movies;
+    private string searchText = string.Empty;
+    private string selectedGenre = string.Empty;
+
+    private List<GetMovieDto> filteredMovies => movies?
+        .Where(movie => string.IsNullOrWhiteSpace(searchText)
+            || movie.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase)
+            || movie.Genre.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+        .Where(movie => string.IsNullOrWhiteSpace(selectedGenre)
+            || string.Equals(movie.Genre, selectedGenre, StringComparison.OrdinalIgnoreCase))
+        .OrderBy(movie => movie.Title, StringComparer.OrdinalIgnoreCase)
+        .ToList() ?? new List<GetMovieDto>();
+
+    private List<string> genres => movies?
+        .Select(movie => movie.Genre)
+        .Where(genre => !string.IsNullOrWhiteSpace(genre))
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .OrderBy(genre => genre, StringComparer.OrdinalIgnoreCase)
+        .ToList() ?? new List<string>();
+
+    private static string GetPosterTone(string genre)
+    {
+        var tone = Math.Abs(genre.Sum(character => character)) % 5;
+        return $"poster-tone-{tone}";
+    }
 
     protected override async Task OnInitializedAsync()
     {

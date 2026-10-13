@@ -4,21 +4,73 @@
 
 @using Filmaholic.Shared.Dtos
 
-<h3>Movie Details</h3>
-
 @if (movie == null)
 {
-    <p>Loading...</p>
+    <div class="loading-state"><span class="loading-mark"></span><p>Loading film details...</p></div>
 }
 else
 {
-    <h2>@movie.Title</h2>
-    <p><b>Genre:</b> @movie.Genre</p>
-    <p><b>Year:</b> @movie.Year</p>
-    <p>@movie.Description</p>
+    <section class="detail-page">
+        <div class="page-heading">
+            <div>
+                <p class="eyebrow">FROM YOUR COLLECTION</p>
+                <a class="back-link" href="/movies">← Back to your shelf</a>
+            </div>
+        </div>
 
-    <button @onclick="DeleteMovie">Delete</button>
-    <button @onclick="EditMovie">Edit</button>
+        <div class="detail-layout">
+            <div class="detail-art">
+                @if (!string.IsNullOrWhiteSpace(ImageDataUrl))
+                {
+                    <img src="@ImageDataUrl" alt="Poster for @movie.Title" />
+                }
+                else
+                {
+                    <div class="detail-art-placeholder">
+                        <span class="poster-overline">FILM / INDEX</span>
+                        <span class="poster-glyph" aria-hidden="true">F</span>
+                        <div class="poster-caption">
+                            <span class="poster-genre">@movie.Genre</span>
+                            <h2>@movie.Title</h2>
+                            <span class="poster-year">@(movie.Year?.ToString() ?? "YEAR UNKNOWN")</span>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="detail-copy">
+                <p class="eyebrow">@movie.AgeGroup</p>
+                <h1>@movie.Title</h1>
+                <div class="detail-subtitle">
+                    <span>@movie.Genre</span>
+                    @if (movie.Year.HasValue)
+                    {
+                        <span aria-hidden="true">/</span><span>@movie.Year</span>
+                    }
+                </div>
+                @if (!string.IsNullOrWhiteSpace(movie.Description))
+                {
+                    <p class="detail-description">@movie.Description</p>
+                }
+                <p class="detail-byline">Added by @movie.UserName · @movie.AddedAt.ToLocalTime().ToString("MMMM yyyy")</p>
+                <div class="form-actions">
+                    <button class="button button-primary" @onclick="EditMovie">Edit details</button>
+                    <button class="button button-secondary" @onclick="() => confirmDelete = true">Remove film</button>
+                </div>
+                @if (confirmDelete)
+                {
+                    <div class="delete-confirm" role="group" aria-label="Confirm removal">
+                        <p>Remove this film from your collection?</p>
+                        <button class="button button-danger" @onclick="DeleteMovie">@(isDeleting ? "Removing..." : "Yes, remove it")</button>
+                        <button class="text-button" @onclick="() => confirmDelete = false">Keep film</button>
+                    </div>
+                }
+                @if (!string.IsNullOrWhiteSpace(errorMessage))
+                {
+                    <div class="form-error" role="alert">@errorMessage</div>
+                }
+            </div>
+        </div>
+    </section>
 }
 
 @code {
@@ -26,18 +78,51 @@ else
     public Guid Id { get; set; }
 
     private GetMovieDto? movie = null;
+    private bool confirmDelete;
+    private bool isDeleting;
+    private string? errorMessage;
+
+    private string? ImageDataUrl
+    {
+        get
+        {
+            if (movie?.Image is not { Length: > 0 } image)
+                return null;
+
+            var contentType = image.Length >= 4 && image[0] == 0x89 && image[1] == 0x50
+                ? "image/png"
+                : image.Length >= 3 && image[0] == 0xFF && image[1] == 0xD8
+                    ? "image/jpeg"
+                    : image.Length >= 4 && image[0] == 0x47 && image[1] == 0x49
+                        ? "image/gif"
+                        : "image/jpeg";
+
+            return $"data:{contentType};base64,{Convert.ToBase64String(image)}";
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
         movie = await MovieService.GetMovieAsync(Id);
     }
 
-    async Task DeleteMovie()
+    private async Task DeleteMovie()
     {
-        await MovieService.DeleteMovieAsync(Id);
-        Nav.NavigateTo("/movies");
+        isDeleting = true;
+        errorMessage = null;
+        try
+        {
+            await MovieService.DeleteMovieAsync(Id);
+            Nav.NavigateTo("/movies");
+        }
+        catch
+        {
+            errorMessage = "Could not remove this film. Check your connection and try again.";
+            isDeleting = false;
+        }
     }
-    async Task EditMovie()
+
+    private void EditMovie()
     {
         Nav.NavigateTo($"/movie/{Id}/edit");
     }

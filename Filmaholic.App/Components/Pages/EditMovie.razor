@@ -5,79 +5,78 @@
 @using Filmaholic.Shared.Dtos
 
 
-<h3>Edit Movie</h3>
-
-<EditForm Model="@movie" OnSubmit="SaveMovie">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
-
-    <div class="form-group">
-        <label>Title:</label>
-        <InputText @bind-Value="movie.Title" class="form-control" />
+<div class="form-page">
+    <div class="page-heading">
+        <div>
+            <p class="eyebrow">YOUR COLLECTION</p>
+            <h1>Edit film</h1>
+            <p class="heading-note">Update the details in your journal.</p>
+        </div>
     </div>
 
-        <div class="form-group">
-        <label>AgeGroup:</label>
-        <InputText @bind-Value="movie.AgeGroup" class="form-control" />
-    </div>
+    @if (isLoading)
+    {
+        <div class="loading-state"><span class="loading-mark"></span><p>Loading film details...</p></div>
+    }
+    else
+    {
+        <EditForm Model="@movie" OnValidSubmit="SaveMovie" class="form-panel">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="validation-errors" />
 
-        <div class="form-group">
-        <label>Genre:</label>
-        <InputText @bind-Value="movie.Genre" class="form-control" />
-    </div>
+            <div class="form-grid">
+                <div class="form-field form-field-wide">
+                    <label for="movie-title">Film title</label>
+                    <InputText id="movie-title" @bind-Value="movie.Title" class="form-control" />
+                </div>
+                <div class="form-field">
+                    <label for="movie-genre">Genre</label>
+                    <InputText id="movie-genre" @bind-Value="movie.Genre" class="form-control" />
+                </div>
+                <div class="form-field">
+                    <label for="movie-age">Age group</label>
+                    <InputText id="movie-age" @bind-Value="movie.AgeGroup" class="form-control" />
+                </div>
+                <div class="form-field">
+                    <label for="movie-year">Release year</label>
+                    <InputNumber id="movie-year" @bind-Value="movie.Year" class="form-control" />
+                </div>
+                <div class="form-field form-field-wide">
+                    <label for="movie-description">Notes</label>
+                    <InputTextArea id="movie-description" @bind-Value="movie.Description" class="form-control" rows="5" />
+                </div>
+                <div class="form-field form-field-wide">
+                    <label for="movie-image">Replace poster <span class="field-optional">OPTIONAL</span></label>
+                    <div class="file-field">
+                        <InputFile id="movie-image" OnChange="OnImageSelected" accept="image/*" />
+                        @if (movie.Image is not null)
+                        {
+                            <p class="file-feedback">A poster is attached to this film.</p>
+                        }
+                    </div>
+                </div>
+            </div>
 
-    <div class="form-group">
-        <label>User Name:</label>
-        <InputText @bind-Value="movie.UserName" class="form-control" />
-    </div>
+            @if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                <div class="form-error" role="alert">@errorMessage</div>
+            }
 
-    <div class="form-group">
-        <label>Year:</label>
-        <InputNumber @bind-Value="movie.Year" class="form-control" />
-    </div>
-
-    <div class="form-group">
-        <label>Description:</label>
-        <InputTextArea @bind-Value="movie.Description"
-                       class="form-control"
-                       rows="4" />
-    </div>
-
-    <div class="form-group">
-        <label>Image:</label>
-        <InputFile OnChange="OnImageSelected" />
-        @if (movie.Image is not null)
-        {
-            <div class="mt-2">Existing image loaded.</div>
-        }
-    </div>
-
-    <button type="submit" class="btn btn-primary">
-        Save
-    </button>
-
-    <button type="button"
-            class="btn btn-secondary"
-            @onclick="Cancel">
-        Cancel
-    </button>
-
-</EditForm>
-
-@if (submitted)
-{
-    <div class="alert alert-success mt-3">
-        Movie updated!
-    </div>
-}
+            <div class="form-actions">
+                <button type="submit" class="button button-primary" disabled="@isBusy">@(isBusy ? "Saving..." : "Save changes")</button>
+                <button type="button" class="button button-secondary" @onclick="Cancel">Cancel</button>
+            </div>
+        </EditForm>
+    }
+</div>
 
 @code {
     [Parameter]
     public Guid Id { get; set; }
     
-    private bool submitted;
-
-
+    private bool isLoading = true;
+    private bool isBusy;
+    private string? errorMessage;
     private GetMovieDto movie = new GetMovieDto();
     
     private UpdateMovieDto updateMovie = new UpdateMovieDto();
@@ -92,10 +91,13 @@
         }
 
         movie = result;
+        isLoading = false;
     }
 
     private async Task SaveMovie()
     {
+        errorMessage = null;
+        isBusy = true;
         updateMovie.Id = Id.ToString();
         updateMovie.Title = movie.Title;
         updateMovie.Genre = movie.Genre;
@@ -103,20 +105,35 @@
         updateMovie.Year = movie.Year;
         updateMovie.Description = movie.Description;
         updateMovie.Image = movie.Image;
-        Console.WriteLine($"Updating movie:{updateMovie.Id} {updateMovie.Title}, {updateMovie.Genre}, {updateMovie.AgeGroup}, {updateMovie.Year}, {updateMovie.Description}");
-        await MovieService.UpdateMovieAsync(updateMovie);
-        submitted = true;
-        Nav.NavigateTo("/movies");
+        try
+        {
+            await MovieService.UpdateMovieAsync(updateMovie);
+            Nav.NavigateTo("/movies");
+        }
+        catch
+        {
+            errorMessage = "Could not save these changes. Check your connection and try again.";
+        }
+        finally
+        {
+            isBusy = false;
+        }
     }
 
     private async Task OnImageSelected(InputFileChangeEventArgs e)
     {
-        var file = e.File;
-        var maxBytes = 10 * 1024 * 1024;
-        var size = (int)Math.Min(file.Size, maxBytes);
-        var buffer = new byte[size];
-        await file.OpenReadStream(maxBytes).ReadAsync(buffer);
-        movie.Image = buffer;
+        try
+        {
+            await using var stream = e.File.OpenReadStream(10 * 1024 * 1024);
+            using var buffer = new MemoryStream();
+            await stream.CopyToAsync(buffer);
+            movie.Image = buffer.ToArray();
+            errorMessage = null;
+        }
+        catch (IOException)
+        {
+            errorMessage = "Choose an image smaller than 10 MB.";
+        }
     }
 
     private void Cancel()

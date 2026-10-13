@@ -16,6 +16,12 @@ obj/
 # ASP.NET Core
 wwwroot/
 
+# MAUI Blazor app assets are first-party; keep vendor libraries ignored.
+!Filmaholic.App/wwwroot/
+Filmaholic.App/wwwroot/*
+!Filmaholic.App/wwwroot/app.css
+!Filmaholic.App/wwwroot/index.html
+
 # .NET secrets
 secrets.json
 

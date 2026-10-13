@@ -4,32 +4,35 @@
 @inject Filmaholic.App.Services.AuthenticationStateNotifier AuthenticationStateNotifier
 
 <div class="layout-container">
-
     <header class="top-bar">
         @if (isAuthenticated)
         {
-            <button class="menu-btn" @onclick="ToggleMenu">☰</button>
+            <button class="menu-btn" @onclick="ToggleMenu" aria-label="@(showMenu ? "Close navigation" : "Open navigation")" aria-expanded="@showMenu">
+                <span></span><span></span><span></span>
+            </button>
         }
-        <span class="title">Filmaholic</span>
+        <a class="brand-lockup" href="/movies" aria-label="Filmaholic home">
+            <span class="brand-mark">F</span>
+            <span class="brand-name">FILMAHOLIC<span class="brand-period">.</span></span>
+        </a>
+        @if (isAuthenticated)
+        {
+            <span class="topbar-note">THE MOVIE JOURNAL</span>
+        }
     </header>
 
     <div class="content-wrapper">
-
         @if (isAuthenticated)
         {
             <div class="overlay @(showMenu ? "visible" : "")" @onclick="CloseMenu"></div>
-
             <div class="sidebar @(showMenu ? "open" : "")">
                 <NavMenu OnNavigate="CloseMenu" />
             </div>
         }
-
         <main class="main-content">
             @Body
         </main>
-
     </div>
-
 </div>
 
 @code {
@@ -54,8 +57,8 @@
     private void ToggleMenu()
     {
         showMenu = !showMenu;
-        Console.WriteLine($"Menu: {showMenu}");
     }
+
     private void CloseMenu()
     {
         showMenu = false;

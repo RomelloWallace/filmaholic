@@ -5,110 +5,105 @@
 
 @using Filmaholic.Shared.Dtos
 
-<h3>Add Movie</h3>
-
-<EditForm Model="@movie" OnValidSubmit="SaveMovie">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
-
-    <div class="form-group">
-        <label>Title:</label>
-        <InputText @bind-Value="movie.Title" class="form-control" />
+<div class="form-page">
+    <div class="page-heading">
+        <div>
+            <p class="eyebrow">GROW YOUR COLLECTION</p>
+            <h1>Add a film</h1>
+            <p class="heading-note">Save the details you want to remember.</p>
+        </div>
     </div>
 
-        <div class="form-group">
-        <label>AgeGroup:</label>
-        <InputText @bind-Value="movie.AgeGroup" class="form-control" />
-    </div>
+    <EditForm Model="@movie" OnValidSubmit="SaveMovie" class="form-panel">
+        <DataAnnotationsValidator />
+        <ValidationSummary class="validation-errors" />
 
-        <div class="form-group">
-        <label>Genre:</label>
-        <InputText @bind-Value="movie.Genre" class="form-control" />
-    </div>
+        <div class="form-grid">
+            <div class="form-field form-field-wide">
+                <label for="movie-title">Film title</label>
+                <InputText id="movie-title" @bind-Value="movie.Title" class="form-control" placeholder="e.g. In the Mood for Love" />
+            </div>
+            <div class="form-field">
+                <label for="movie-genre">Genre</label>
+                <InputText id="movie-genre" @bind-Value="movie.Genre" class="form-control" placeholder="Drama, comedy..." />
+            </div>
+            <div class="form-field">
+                <label for="movie-age">Age group</label>
+                <InputText id="movie-age" @bind-Value="movie.AgeGroup" class="form-control" placeholder="Audience rating" />
+            </div>
+            <div class="form-field">
+                <label for="movie-year">Release year</label>
+                <InputNumber id="movie-year" @bind-Value="movie.Year" class="form-control" placeholder="Optional" />
+            </div>
+            <div class="form-field form-field-wide">
+                <label for="movie-description">Notes</label>
+                <InputTextArea id="movie-description" @bind-Value="movie.Description" class="form-control" rows="5" placeholder="What made this one stay with you?" />
+            </div>
+            <div class="form-field form-field-wide">
+                <label for="movie-image">Poster image <span class="field-optional">OPTIONAL</span></label>
+                <div class="file-field">
+                    <InputFile id="movie-image" OnChange="OnImageSelected" accept="image/*" />
+                    @if (movie.Image is not null)
+                    {
+                        <p class="file-feedback">Image ready to save.</p>
+                    }
+                </div>
+            </div>
+        </div>
 
-    <div class="form-group">
-        <label>Year:</label>
-        <InputNumber @bind-Value="movie.Year" class="form-control" />
-    </div>
-
-    <div class="form-group">
-        <label>Description:</label>
-        <InputTextArea @bind-Value="movie.Description"
-                       class="form-control"
-                       rows="4" />
-    </div>
-
-    <div class="form-group">
-        <label>Image:</label>
-        <InputFile OnChange="OnImageSelected" />
-        @if (movie.Image is not null)
+        @if (!string.IsNullOrWhiteSpace(errorMessage))
         {
-            <div class="mt-2">Image selected.</div>
+            <div class="form-error" role="alert">@errorMessage</div>
         }
-    </div>
 
-    <button type="submit" class="btn btn-primary">
-        Save
-    </button>
-</EditForm>
-
-<button type="button"
-        class="btn btn-secondary mt-3"
-        @onclick="Cancel">
-    Cancel
-</button>
-
-@if (submitted)
-{
-    <div class="alert alert-success mt-3">
-        Movie saved!
-    </div>
-}
+        <div class="form-actions">
+            <button type="submit" class="button button-primary" disabled="@isBusy">@(isBusy ? "Saving..." : "Save to collection")</button>
+            <button type="button" class="button button-secondary" @onclick="Cancel">Cancel</button>
+        </div>
+    </EditForm>
+</div>
 
 @code {
 
     private CreateMovieDto movie = new CreateMovieDto();
 
-    private bool submitted;
+    private bool isBusy;
+    private string? errorMessage;
 
     private async Task SaveMovie()
     {
+        errorMessage = null;
+        isBusy = true;
         try
         {
             await MovieService.AddMovieAsync(movie);
-            submitted = true;
             Nav.NavigateTo("/movies");
         }
-        catch (Exception ex)
+        catch
         {
-            Console.WriteLine(ex);
-            submitted = false;
+            errorMessage = "Could not save this film. Check your connection and try again.";
+        }
+        finally
+        {
+            isBusy = false;
         }
     }
 
     private async Task OnImageSelected(InputFileChangeEventArgs e)
     {
-        var file = e.File;
-        var maxBytes = 10 * 1024 * 1024;
-        await using var stream = file.OpenReadStream(maxBytes);
-        var size = (int)Math.Min(file.Size, maxBytes);
-        var buffer = new byte[size];
-        var totalRead = 0;
-
-        while (totalRead < size)
+        try
         {
-            var read = await stream.ReadAsync(buffer, totalRead, size - totalRead);
-            if (read == 0)
-                break;
-            totalRead += read;
+            await using var stream = e.File.OpenReadStream(10 * 1024 * 1024);
+            using var buffer = new MemoryStream();
+            await stream.CopyToAsync(buffer);
+            movie.Image = buffer.ToArray();
+            errorMessage = null;
         }
-
-        if (totalRead != size)
+        catch (IOException)
         {
-            Array.Resize(ref buffer, totalRead);
+            movie.Image = null;
+            errorMessage = "Choose an image smaller than 10 MB.";
         }
-
-        movie.Image = buffer;
     }
 
     private void Cancel()
