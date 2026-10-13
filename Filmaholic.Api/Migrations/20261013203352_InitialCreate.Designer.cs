@@ -11,14 +11,14 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Filmaholic.Api.Migrations
 {
     [DbContext(typeof(MoviesDbContext))]
-    [Migration("20260818021706_AddIdentityAndUser")]
-    partial class AddIdentityAndUser
+    [Migration("20261013203352_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "10.0.5");
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.12");
 
             modelBuilder.Entity("Filmaholic.Api.Entities.MovieEntity", b =>
                 {
@@ -62,16 +62,16 @@ namespace Filmaholic.Api.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Title")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Movies_Title_Year_Null")
+                        .HasFilter("\"Year\" IS NULL");
+
                     b.HasIndex("UserId");
 
                     b.HasIndex("Title", "Year")
                         .IsUnique()
                         .HasFilter("\"Year\" IS NOT NULL");
-
-                    b.HasIndex("Title")
-                        .IsUnique()
-                        .HasDatabaseName("IX_Movies_Title_Year_Null")
-                        .HasFilter("\"Year\" IS NULL");
 
                     b.ToTable("Movies");
                 });

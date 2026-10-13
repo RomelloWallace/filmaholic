@@ -24,13 +24,20 @@ dotnet workload install maui
 ## Configure And Run The API
 
 The API uses SQLite by default. The development database is `Filmaholic.Api/movies.db`.
-Do not use the checked-in JWT key for a deployed environment. Configure a private key of at least 32 bytes with environment variables or a secret manager:
+The JWT signing key is not stored in `appsettings.json`. A local development key is stored in .NET User Secrets, outside the repository. To create your own key in PowerShell:
 
 ```powershell
-$env:Jwt__Key = "your-private-random-signing-key-at-least-32-bytes"
-$env:Jwt__Issuer = "Filmaholic"
-$env:Jwt__Audience = "FilmaholicApp"
+$bytes = New-Object byte[] 32
+$rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+$rng.GetBytes($bytes)
+$jwtKey = [Convert]::ToBase64String($bytes)
+dotnet user-secrets set "Jwt:Key" $jwtKey --project Filmaholic.Api
+$rng.Dispose()
+[Array]::Clear($bytes, 0, $bytes.Length)
+Remove-Variable jwtKey, bytes, rng
 ```
+
+For production, set `Jwt__Key` in the deployment environment or secret manager to a new random value of at least 32 bytes. Do not reuse the old key from Git history; treat it as exposed and rotate it before deployment. Issuer and audience are identifiers, not secrets, and remain in `appsettings.json`.
 
 Run the API from the repository root:
 
@@ -46,7 +53,7 @@ Apply database migrations explicitly when setting up or upgrading a database:
 dotnet ef database update --project Filmaholic.Api
 ```
 
-The identity migration assigns movies from the pre-identity schema to a disabled legacy-import user. It also adds unique title/year indexes. Review and resolve any duplicate title/year rows before applying that migration to an existing database; the migration does not delete duplicate records.
+The current baseline migration creates the schema for a fresh test database, including Identity and unique movie title/year indexes. This project does not preserve data from the earlier pre-identity schema. To reset the local test database, stop the API and remove `Filmaholic.Api/movies.db`, then run the migration command above.
 
 ## Run The App
 

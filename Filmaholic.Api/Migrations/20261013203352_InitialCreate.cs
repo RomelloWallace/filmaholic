@@ -6,18 +6,11 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Filmaholic.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class AddIdentityAndUser : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<Guid>(
-                name: "UserId",
-                table: "Movies",
-                type: "TEXT",
-                nullable: false,
-                defaultValue: new Guid("00000000-0000-0000-0000-000000000000"));
-
             migrationBuilder.CreateTable(
                 name: "AspNetRoles",
                 columns: table => new
@@ -59,19 +52,6 @@ namespace Filmaholic.Api.Migrations
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
                 });
-
-            migrationBuilder.Sql("""
-                INSERT INTO AspNetUsers
-                    (Id, CreatedAt, IsActive, EmailConfirmed, PhoneNumberConfirmed,
-                     TwoFactorEnabled, LockoutEnabled, AccessFailedCount, UserName, NormalizedUserName)
-                VALUES
-                    ('11111111-1111-1111-1111-111111111111', '2026-01-01 00:00:00', 0, 0, 0, 0, 0, 0,
-                     'legacy-import', 'LEGACY-IMPORT');
-
-                UPDATE Movies
-                SET UserId = '11111111-1111-1111-1111-111111111111',
-                    Title = trim(Title);
-                """);
 
             migrationBuilder.CreateTable(
                 name: "AspNetRoleClaims",
@@ -179,10 +159,32 @@ namespace Filmaholic.Api.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateIndex(
-                name: "IX_Movies_UserId",
-                table: "Movies",
-                column: "UserId");
+            migrationBuilder.CreateTable(
+                name: "Movies",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Title = table.Column<string>(type: "TEXT", nullable: false),
+                    Genre = table.Column<string>(type: "TEXT", nullable: false),
+                    AgeGroup = table.Column<string>(type: "TEXT", nullable: false),
+                    UserName = table.Column<string>(type: "TEXT", nullable: false),
+                    Year = table.Column<int>(type: "INTEGER", nullable: true),
+                    Description = table.Column<string>(type: "TEXT", nullable: true),
+                    Image = table.Column<byte[]>(type: "BLOB", nullable: true),
+                    AddedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    UserId = table.Column<Guid>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Movies", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Movies_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -211,6 +213,17 @@ namespace Filmaholic.Api.Migrations
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
+                name: "EmailIndex",
+                table: "AspNetUsers",
+                column: "NormalizedEmail");
+
+            migrationBuilder.CreateIndex(
+                name: "UserNameIndex",
+                table: "AspNetUsers",
+                column: "NormalizedUserName",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Movies_Title_Year",
                 table: "Movies",
                 columns: new[] { "Title", "Year" },
@@ -225,32 +238,14 @@ namespace Filmaholic.Api.Migrations
                 filter: "\"Year\" IS NULL");
 
             migrationBuilder.CreateIndex(
-                name: "EmailIndex",
-                table: "AspNetUsers",
-                column: "NormalizedEmail");
-
-            migrationBuilder.CreateIndex(
-                name: "UserNameIndex",
-                table: "AspNetUsers",
-                column: "NormalizedUserName",
-                unique: true);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Movies_AspNetUsers_UserId",
+                name: "IX_Movies_UserId",
                 table: "Movies",
-                column: "UserId",
-                principalTable: "AspNetUsers",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                column: "UserId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Movies_AspNetUsers_UserId",
-                table: "Movies");
-
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
@@ -267,18 +262,13 @@ namespace Filmaholic.Api.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "Movies");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Movies_UserId",
-                table: "Movies");
-
-            migrationBuilder.DropColumn(
-                name: "UserId",
-                table: "Movies");
         }
     }
 }

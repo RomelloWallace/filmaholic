@@ -23,6 +23,12 @@ public static class JwtExtensions
         var jwtSettings = jwtSection.Get<JwtSettings>()
             ?? throw new InvalidOperationException("Jwt configuration is required.");
 
+        if (Encoding.UTF8.GetByteCount(jwtSettings.Key) < 32)
+        {
+            throw new InvalidOperationException(
+                "Configure Jwt:Key using User Secrets for development or a deployment secret of at least 32 bytes.");
+        }
+
         var keyBytes = Encoding.UTF8.GetBytes(jwtSettings.Key);
         var signingKey = new SymmetricSecurityKey(keyBytes);
 
